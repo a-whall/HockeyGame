@@ -10,9 +10,11 @@ public class RinkTextureGenerator : MonoBehaviour
 		yield return PNG();
 	}
 
-	// Scan the rink with a bunch of raycasts, storing each color in a texture and then saving the texture as a PNG.
-	// It takes a minute.
-	// aa - antialiasing factor. Determines the sample size of rays to cast per unit of world space. Scales resolution of PNG.
+	/// <summary>
+	/// Scan the rink with a bunch of raycasts, storing each color in a texture and then saving the texture as a PNG.
+	/// It takes a minute.
+	/// aa - antialiasing factor. Determines the sample size of rays to cast per unit of world space. Scales resolution of PNG.
+	/// </summary>
 	IEnumerator PNG() {
 		yield return new WaitForEndOfFrame();
 		float aa = 100f;
