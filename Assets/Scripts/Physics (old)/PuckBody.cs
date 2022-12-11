@@ -71,6 +71,7 @@ public class PuckBody : MonoBehaviour {
 
     public void AddRotationalForce(Vector3 point, Vector3 force) {
         Vector3 torque = Vector3.Cross(point-state.position, force);
+        AddRotationalForce(torque);
     }
 
     public Vector3 ComputeLinearAcceleration() {
