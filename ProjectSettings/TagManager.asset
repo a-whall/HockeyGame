@@ -6,7 +6,9 @@ TagManager:
   tags:
   - PlayerBody
   - StaticBody
-  - StickBody
+  - Stick
+  - Head
+  - Net
   layers:
   - Default
   - TransparentFX
