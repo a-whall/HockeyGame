@@ -9,6 +9,11 @@ TagManager:
   - Stick
   - Head
   - Net
+  - Puck
+  - Post
+  - Ice
+  - Board
+  - Glass
   layers:
   - Default
   - TransparentFX

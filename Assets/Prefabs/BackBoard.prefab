@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 7184804891709034868}
   m_Layer: 0
   m_Name: Cube
-  m_TagString: Untagged
+  m_TagString: Glass
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -111,7 +111,7 @@ GameObject:
   - component: {fileID: 7771450314894324669}
   m_Layer: 0
   m_Name: BackBoard
-  m_TagString: StaticBody
+  m_TagString: Board
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

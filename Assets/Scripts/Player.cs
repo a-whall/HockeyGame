@@ -11,7 +11,7 @@ public class Player : MonoBehaviour
     public bool is_idle { get; private set; } = true;
     public bool stick_raised { get; private set; } = false;
     public bool facing_forward { get; private set; } = false;
-    public bool wants_lift { get; private set; } = false;
+    public bool wants_puck_lift { get; private set; } = false;
 
     [Header("Stick Control Variables")]
     [SerializeField] float starting_stick_height;
@@ -29,6 +29,7 @@ public class Player : MonoBehaviour
 
     [Header("Rotation Control Variables")]
     [SerializeField] float desired_Ө;
+    [SerializeField] float current_Ө;
     [SerializeField] float axis_cutoff;
     [SerializeField] float mouse_sensitivity;
     [SerializeField] int frame_last_rotated;
@@ -96,17 +97,25 @@ public class Player : MonoBehaviour
 
         rigidbodies.body.AddForce(net_force);
 
-        // Horizontal mouse movement actuates body rotation via torque which preserves validity of angular velocity.
-        desired_Ө += mouse_sensitivity * Clamp(GetAxis("Mouse X"), -axis_cutoff, axis_cutoff);
-        var t= Kp * DeltaAngle(gameobjects.body.transform.eulerAngles.y, desired_Ө) - Kd * rigidbodies.body.angularVelocity.y;
-        rigidbodies.body.AddTorque(new Vector3(0, t, 0), ForceMode.Acceleration);
+        // Change in angle is proportional to horizontal mouse movement.
+        float dӨ= mouse_sensitivity * Clamp(GetAxis("Mouse X"), -axis_cutoff, axis_cutoff);
+
+        current_Ө= gameobjects.body.transform.eulerAngles.y;
+
+        // Only add change in angle to desired angle if desired angle is not too far away from current angle.
+        if (DeltaAngle(current_Ө, desired_Ө + dӨ) < 30f)
+            desired_Ө += desired_Ө + dӨ >= 360 ? dӨ-360f : desired_Ө + dӨ < 0f ? dӨ+360f : dӨ;
+
+        // Spring torque system works pretty well, preserving rigidbody angular velocity.
+        float y_axis_torque= Kp * DeltaAngle(current_Ө, desired_Ө) - Kd * rigidbodies.body.angularVelocity.y;
+        rigidbodies.body.AddTorque(new Vector3(0, y_axis_torque, 0), ForceMode.Acceleration);
 
         // Raise stick on left click. FixedJoint anchor point will auto-reset it's position.
         if (stick_raised= GetMouseButton(0))
             rigidbodies.stick.MovePosition(new Vector3(rigidbodies.stick.position.x, starting_stick_height, rigidbodies.stick.position.z) + raise_stick_height * Vector3.up);
 
         // When puck breaks contact with stick. The puck will receive an upward force if wants_lift is true.
-        wants_lift= GetMouseButton(1);
+        wants_puck_lift= GetMouseButton(1);
 
         // Update Viewing direction.
         if (GetKeyDown("e")) facing_forward= !facing_forward;
@@ -124,7 +133,6 @@ public class Player : MonoBehaviour
         return rigidbodies.body;
     }
 }
-
 
 // MoveRotation produces more responsive rotation but invalidates rigidbody angular velocity.
 // ------------------------------------------------------------------------------------------
