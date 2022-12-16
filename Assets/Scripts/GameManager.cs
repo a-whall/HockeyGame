@@ -1,8 +1,8 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using static AudioManager.Audio;
 using UnityEngine.SceneManagement;
+using static AudioManager.AudioID;
 
 // Multiplayer networking forgone since physics combined with networking is complicated according to unity:
 // https://docs-multiplayer.unity3d.com/netcode/current/learn/faq/index.html#what-are-best-practices-for-handing-physics-with-netcode
@@ -14,11 +14,13 @@ public class GameManager : MonoBehaviour
 
     [Header("Game Session Constants")]
     [SerializeField] float game_duration;
+    [SerializeField] int target_frame_rate;
 
     [Header("Active Game Session Values")]
     [SerializeField] Vector2 score;
     [SerializeField] float time_remaining;
     [SerializeField] bool game_over;
+    [SerializeField] bool game_paused;
 
     [Header("UI Elements")]
     [SerializeField] Text score_label;
@@ -64,11 +66,11 @@ public class GameManager : MonoBehaviour
         score = new (0, 0);
 
         var net0 = GameObject.Find("Net(0)").GetComponent<Net>();
-        net0.on_goal.Add(()=> score[0] += 1);
+        net0.on_goal.Add(() => score[0] += 1);
         net0.on_goal.Add(UpdateScore);
 
         var net1 = GameObject.Find("Net(1)").GetComponent<Net>();
-        net1.on_goal.Add(()=> score[1] += 1);
+        net1.on_goal.Add(() => score[1] += 1);
         net1.on_goal.Add(UpdateScore);
 
         score_panel.SetActive(false);
@@ -159,9 +161,16 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
+    void Awake()
+    {
+        QualitySettings.vSyncCount = 0;  // Disable Vsync
+        Application.targetFrameRate = target_frame_rate;
+    }
+
     void Update()
     {
-        if (game_over) return;
+        if (game_over || game_paused)
+            return;
         if(Input.GetKeyDown(KeyCode.P) && playing){
             GamePaused();
         }
@@ -175,7 +184,7 @@ public class GameManager : MonoBehaviour
             yield return new WaitForFixedUpdate();
         }
         game_over = true;
-        audio_source.PlayOneShot(audio.GetClip(AudioManager.Audio.Period_Buzzer));
+        audio_source.PlayOneShot(audio.GetClip(Period_Buzzer));
         Debug.Log("Game timer is done.");
         yield break;
     }

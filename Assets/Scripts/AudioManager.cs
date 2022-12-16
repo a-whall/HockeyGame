@@ -1,10 +1,9 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable] public class AudioManager
 {
-    public enum Audio
+    public enum AudioID
     {
         Pass_1,
         Pass_2,
@@ -43,11 +42,17 @@ using UnityEngine;
         None
     }
 
+    [Header("Sound Effects Library")]
     [SerializeField] AudioClip[] audio_clips;
+
+    [Header("Volume")]
+    public float sfx_volume;
+    public float ambient_volume;
 
     public AudioManager()
     {
     }
-    public AudioClip GetClip(Audio type) =>
-        type == Audio.None ? null :  audio_clips[(int)type];
+
+    public AudioClip GetClip(AudioID type) =>
+        type == AudioID.None ? null :  audio_clips[(int)type];
 }

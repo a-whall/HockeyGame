@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static AudioManager.Audio;
+using static AudioManager.AudioID;
 
 public class Stick : MonoBehaviour
 {
@@ -17,7 +17,7 @@ public class Stick : MonoBehaviour
 
     void PlayAppropriateSoundEffect(float impact_velocity, GameObject collided)
     {
-        AudioManager.Audio to_play = None;
+        AudioManager.AudioID to_play = None;
 
         if (collided.CompareTag("Ice"))
             to_play = Stick_Ice;

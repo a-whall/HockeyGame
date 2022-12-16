@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028334, g: 0.22571328, b: 0.3069217, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -451,7 +451,7 @@ Rigidbody:
   m_GameObject: {fileID: 94823066}
   serializedVersion: 2
   m_Mass: 25
-  m_Drag: 0
+  m_Drag: 0.5
   m_AngularDrag: 0
   m_UseGravity: 0
   m_IsKinematic: 0
@@ -1150,9 +1150,11 @@ MonoBehaviour:
   players:
   - {fileID: 631902876}
   game_duration: 300
+  target_frame_rate: 0
   score: {x: 0, y: 0}
   time_remaining: 0
   game_over: 0
+  game_paused: 0
   score_label: {fileID: 1527009926}
   time_label: {fileID: 826088629}
   audio_source: {fileID: 593331967}
@@ -1192,6 +1194,8 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 06b737e44d053544c8bb8462cd67f93d, type: 3}
     - {fileID: 8300000, guid: 06b737e44d053544c8bb8462cd67f93d, type: 3}
     - {fileID: 8300000, guid: 06b737e44d053544c8bb8462cd67f93d, type: 3}
+    sfx_volume: 0
+    ambient_volume: 0
   score_panel: {fileID: 695632432}
   time_panel: {fileID: 1666012808}
   title_panel: {fileID: 127704225}
@@ -1389,25 +1393,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b2f95f56ae74044ebc71a9e7ad258c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  is_idle: 1
+  stick_raised: 0
+  facing_forward: 0
+  wants_puck_lift: 0
+  sprint: 0
+  braking: 0
+  move_direction: {x: 0, y: 0, z: 0}
+  sprint_force: 200
+  braking_drag: 7
+  regular_drag: 1
+  max_speed: 10
+  "desired_\u04E8": 0
+  "current_\u04E8": 0
+  "desired_\u03A9": 0
+  "current_\u03A9": 0
+  Kp: 16
+  Ki: 20
+  Kd: 24
+  I: 0
   starting_stick_height: 0
   raise_stick_height: 0.5
   frame_stick_up: 0
   frame_stick_down: 0
-  key_sensitivity: 1.5
-  f_spacebar: 200
-  frame_spacebar_last_pressed: 0
-  "\u03BC_shift": 0.4
-  "\u03BC": 0.1
-  max_speed: 12
-  "desired_\u04E8": 0
-  "current_\u04E8": 0
-  axis_cutoff: 0.5
-  mouse_sensitivity: 30
-  frame_last_rotated: 0
-  Kp: 2
-  Kd: 5
-  cam_distance: 13
-  cam_offset: {x: 0, y: 0, z: 0}
   saves: 0
   shots: 0
   goals: 0
@@ -1430,19 +1438,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 631902870}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7627c8a1997a6634594f5c9cac9b3916, type: 3}
+  m_Script: {fileID: 11500000, guid: 18930193383bb484e9c85b517e06bca1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 631902876}
-  player_camera: {fileID: 1853541364}
-  key_sensitivity: 1.5
   frame_spacebar_last_pressed: 0
-  "desired_\u04E8": 0
-  axis_cutoff: 0.2
+  "d\u04E8": 0
+  key_sensitivity: 15
   mouse_sensitivity: 30
-  frame_last_rotated: 0
+  mouse_axis_cutoff: 0.5
   cam_distance: 13
   cam_offset: {x: 0, y: 0, z: 0}
+  camera: {fileID: 1853541366}
 --- !u!1 &633336377
 GameObject:
   m_ObjectHideFlags: 0
@@ -4247,7 +4254,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   max_speed: 20
-  lift_sensitivity: 0.1
+  lift_sensitivity: 2
   puckbody: {fileID: 1736994582}
   audio_source: {fileID: 3692423544189853725}
   game: {fileID: 593331966}

@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
-using static AudioManager.Audio;
+using static AudioManager.AudioID;
 
 public class Puck : MonoBehaviour
 {
@@ -34,15 +32,18 @@ public class Puck : MonoBehaviour
     void OnCollisionExit(Collision c)
     {
         if (c.gameObject.CompareTag("Stick")) {
-            Player p = c.transform.parent.GetComponent<Player>();
-            if (p != null && p.wants_puck_lift && p.Body().angularVelocity.magnitude > 3)
+            Player player = c.transform.parent.GetComponent<Player>();
+            if (player != null && player.wants_puck_lift && player.Body.angularVelocity.magnitude > 3)
                 puckbody.AddForce(lift_sensitivity * Vector3.up);
+            
+            // if player angular velocity is greater than some threshold
+            //     apply an extra force in the direction of the stick
         }
     }
 
     void PlayAppropriateSoundEffect(float puck_speed, GameObject collided)
     {
-        AudioManager.Audio to_play = None;
+        AudioManager.AudioID to_play = None;
 
         if (collided.CompareTag("Post"))
             to_play = puck_speed > 8 ? Puck_Post_2
@@ -69,7 +70,6 @@ public class Puck : MonoBehaviour
 
         else if (collided.CompareTag("Glass"))
             to_play = puck_speed > 10 ? Puck_Glass_3
-                    : puck_speed > 5 ? Puck_Glass_2
                     : Puck_Glass_1;
 
         AudioClip sound_effect = game.audio.GetClip(to_play);
