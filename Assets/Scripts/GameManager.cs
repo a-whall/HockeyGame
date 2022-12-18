@@ -1,11 +1,17 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 using static AudioManager.AudioID;
+using static UnityEngine.Input;
 
-// Multiplayer networking forgone since physics combined with networking is complicated according to unity:
-// https://docs-multiplayer.unity3d.com/netcode/current/learn/faq/index.html#what-are-best-practices-for-handing-physics-with-netcode
+// Resources:
+// ----------
+// Useful guide on positioning UI elements:
+// https://www.youtube.com/watch?v=FeheZqu85WI
+// The canvas group, switching groups made easy by setting alpha to 1 and blocksRaycasts to false:
+// https://docs.unity3d.com/ScriptReference/CanvasGroup.html
+// C# "string interpolation" (basically js template strings):
+// https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/tokens/interpolated
 
 public class GameManager : MonoBehaviour
 {
@@ -17,148 +23,98 @@ public class GameManager : MonoBehaviour
     [SerializeField] int target_frame_rate;
 
     [Header("Active Game Session Values")]
-    [SerializeField] Vector2 score;
-    [SerializeField] float time_remaining;
-    [SerializeField] bool game_over;
-    [SerializeField] bool game_paused;
-
-    [Header("UI Elements")]
-    [SerializeField] Text score_label;
-    [SerializeField] Text time_label;
+    [SerializeField] internal Vector2 score;
+    [SerializeField] internal float time_remaining;
+    [SerializeField] internal bool game_over;
+    [SerializeField] internal bool is_paused;
+    [SerializeField] internal Puck puck;
 
     [Header("Sound Effects")]
     [SerializeField] AudioSource audio_source;
-    public AudioManager audio;
 
-    public GameObject score_panel;
-    public GameObject time_panel;
-    public GameObject title_panel;
-    public GameObject how_to_play_title;
-    public GameObject how_to_play_panel;
-    public Button play_offense_button;
-    public Button skip_how_to_button;
-    public Button next_how_to_button;
-    private int how_to_page_num = 1;
-    public Button continue_playing_button;
-    public Button main_menu_button;
-    private bool playing = false;
+    [Space][Header("-- UI Elements --")][Space]
 
-    private string[] game_instructions = new string[4];
+    // TODO: Finish declaring and hooking all ui elements for each canvas group.
 
-    void GetGameInstructions(){
-        game_instructions[0] = "Controls:\n\n";
-        game_instructions[0] += "W - forward\n";
-        game_instructions[0] += "S - backward\n";
-        game_instructions[0] += "A - left\n";
-        game_instructions[0] += "D - right";
+    [Header("Game Overlay")]
+    [SerializeField] CanvasGroup overlay;
+    [SerializeField] Text score_label;
+    [SerializeField] Text time_label;
 
-        game_instructions[1] = "Move your mouse left/right to rotate your player.\n\n";
-        game_instructions[1] += "Left-Click to raise your stick.\n\n";
-        game_instructions[1] += "Press P at any point to pause the game.";
+    [Header("Title Menu")]
+    [SerializeField] CanvasGroup title;
+    [SerializeField] Button start_game;
+    [SerializeField] Button title_to_settings;
+    [SerializeField] Button start_tutorial;
+    [SerializeField] Button start_lesson;
 
-        game_instructions[2] = "More instructions.";
+    [Header("Settings menu")]
+    [SerializeField] CanvasGroup settings;
+    [SerializeField] Button settings_to_menu;
 
-        game_instructions[3] = "More instructions.";
-    }
+    [Header("Pause Menu")]
+    [SerializeField] CanvasGroup pause;
+    [SerializeField] Button resume;
+    [SerializeField] Button pause_to_settings;
+    [SerializeField] Button pause_to_menu;
+
+    [Header("Tutorial Menu")]
+    [SerializeField] CanvasGroup tutorial;
+    [SerializeField] Text instruction;
+    [SerializeField] Text instruction_subtext;
+    [SerializeField] Button next;
+    [SerializeField] Button tutorial_to_menu;
+    [SerializeField] int how_to_page_num = 1;
+
+    [Header("Educational Component Menu")]
+    [SerializeField] CanvasGroup educational;
+
+    [Header("Post-Game menu")]
+    [SerializeField] CanvasGroup post_game;
+    [SerializeField] Text stats;
+    [SerializeField] Button post_game_to_menu;
+
+    public new AudioManager audio;
+
+    string[] game_instructions = new string[]
+    {
+        "Controls:\n\nW - forward\nS - backward\nA - left\nD - right",
+        "Move your mouse left/right to rotate your player.\n\nLeft-Click to raise your stick.\n\nPress escape at any point to pause the game.",
+        "More instructions.",
+        "More instructions."
+    };
 
     void Start()
     {
-        score = new (0, 0);
+        score = new(0, 0);
 
+        // Set up nets to update score when it senses a goal.
         var net0 = GameObject.Find("Net(0)").GetComponent<Net>();
-        net0.on_goal.Add(() => score[0] += 1);
-        net0.on_goal.Add(UpdateScore);
-
+        net0.on_goal_callback.Add(() => score[0] += 1);
+        net0.on_goal_callback.Add(UpdateScore);
         var net1 = GameObject.Find("Net(1)").GetComponent<Net>();
-        net1.on_goal.Add(() => score[1] += 1);
-        net1.on_goal.Add(UpdateScore);
+        net1.on_goal_callback.Add(() => score[1] += 1);
+        net1.on_goal_callback.Add(UpdateScore);
 
-        score_panel.SetActive(false);
-        time_panel.SetActive(false);
-        title_panel.SetActive(true);
-        how_to_play_title.SetActive(false);
-        how_to_play_panel.SetActive(false);
-        play_offense_button.onClick.AddListener(PlayGame);
-        play_offense_button.gameObject.SetActive(true);
+        // Title menu buttons.
+        start_game.onClick.AddListener( StartNewGame );
+        title_to_settings.onClick.AddListener( OpenSettings );
+        start_tutorial.onClick.AddListener( StartTutorial );
 
-        skip_how_to_button.onClick.AddListener(SkipHowTo);
-        next_how_to_button.onClick.AddListener(NextHowTo);
-        skip_how_to_button.gameObject.SetActive(false);
-        next_how_to_button.gameObject.SetActive(false);
+        // Pause menu buttons.
+        resume.onClick.AddListener( Unpause );
+        pause_to_menu.onClick.AddListener( BackToMenu );
 
-        continue_playing_button.onClick.AddListener(UnpauseGame);
-        main_menu_button.onClick.AddListener(BackToMainMenu);
-        continue_playing_button.gameObject.SetActive(false);
-        main_menu_button.gameObject.SetActive(false);
+        // Tutorial menu buttons.
+        // tutorial_to_menu.onClick.AddListener( BackToMenu );
+        // TODO: Finish tutorial menu page.
+        // I think for this we can just have the full set of control keys on a single page.
+        // The multipage code can be used for educational content
+        // the code is on this commit: https://github.com/a-whall/HockeyGame/commit/6c46030b4f5fdb41a673f22938d399f24f8d253f
 
-        Cursor.lockState = CursorLockMode.None;
-        Time.timeScale = 0;
-
-        GetGameInstructions();
-    }
-
-    void PlayGame(){
-		title_panel.SetActive(false);
-        play_offense_button.gameObject.SetActive(false);
-        how_to_play_title.SetActive(true);
-        how_to_play_title.GetComponentInChildren<Text>().text = "How to Play (" + how_to_page_num.ToString() + "/4)";
-        how_to_play_panel.SetActive(true);
-        skip_how_to_button.gameObject.SetActive(true);
-        next_how_to_button.gameObject.SetActive(true);
-        
-        how_to_play_panel.GetComponentInChildren<Text>().text = game_instructions[how_to_page_num - 1];
-	}
-
-    void NextHowTo(){
-        how_to_play_title.GetComponentInChildren<Text>().text = "How to Play (" + how_to_page_num.ToString() + "/4)";
-        if(how_to_page_num > game_instructions.Length){
-            SkipHowTo();
-        }
-        else{
-            how_to_play_panel.GetComponentInChildren<Text>().text = game_instructions[how_to_page_num - 1];
-            how_to_page_num += 1;
-        }
-
-        if(how_to_page_num > game_instructions.Length){
-            next_how_to_button.GetComponentInChildren<Text>().text = "Play";
-            next_how_to_button.transform.position = new Vector3(350.0f, next_how_to_button.transform.position.y, 0.0f);
-            skip_how_to_button.gameObject.SetActive(false);
-        }
-	}
-
-    void SkipHowTo(){
-        how_to_play_title.SetActive(false);
-        how_to_play_panel.SetActive(false);
-        skip_how_to_button.gameObject.SetActive(false);
-        next_how_to_button.gameObject.SetActive(false);
-        score_panel.SetActive(true);
-        time_panel.SetActive(true);
-        playing = true;
-        Time.timeScale = 1;
-        StartCoroutine(GameTimer(time_start:Time.time));
-	}
-
-    void GamePaused(){
-        playing = false;
-        Time.timeScale = 0;
-        Cursor.lockState = CursorLockMode.None;
-        title_panel.SetActive(true);
-        title_panel.GetComponentInChildren<Text>().text = "Game Paused";
-        continue_playing_button.gameObject.SetActive(true);
-        main_menu_button.gameObject.SetActive(true);
-	}
-
-    void UnpauseGame(){
-        playing = true;
-        continue_playing_button.gameObject.SetActive(false);
-        main_menu_button.gameObject.SetActive(false);
-        title_panel.SetActive(false);
-        Cursor.lockState = CursorLockMode.Locked;
-        Time.timeScale = 1;
-    }
-
-    void BackToMainMenu(){
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        // Start on the title menu canvas group.
+        SetCursor(in_menu:true);
+        Show(ref title);
     }
 
     void Awake()
@@ -169,28 +125,109 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        if (game_over || game_paused)
+        if (game_over || is_paused)
             return;
-        if(Input.GetKeyDown(KeyCode.P) && playing){
-            GamePaused();
-        }
+        if (GetKeyDown("escape"))
+            Pause();
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Puck"))
+            StartCoroutine(PuckOutOfBounds());
+    }
+
+    void StartNewGame()
+    {
+        Hide(ref title);
+        Show(ref overlay);
+        SetCursor(in_menu:false);
+        StartCoroutine(GameTimer(time_start:Time.time));
+        
+        // TODO: Use Initiate() to create instances of player prefab for each player in the game,
+        // assigning AI to each and selecting one to be the player.
+        
+        // TODO: Reset game session variables.
+    }
+
+    void OpenSettings()
+    {
+        Hide(ref title);
+        Show(ref settings);
+    }
+
+    void StartTutorial()
+    {
+        Hide(ref title);
+        Show(ref tutorial);
+        instruction.text = game_instructions[how_to_page_num - 1];
+        instruction_subtext.text = $"How to Play ({how_to_page_num}/4)";
+    }
+
+    void Pause()
+    {
+        is_paused = true;
+        Show(ref pause);
+        SetCursor(in_menu:true);
+    }
+
+    void Unpause()
+    {
+        is_paused = false;
+        Hide(ref pause);
+        SetCursor(in_menu:false);
+    }
+
+    void BackToMenu()
+    {
+        Hide(ref overlay);
+        Hide(ref tutorial);
+        Show(ref title);
     }
 
     IEnumerator GameTimer(float time_start)
     {
         while (Time.time - time_start < game_duration) {
-            var t = game_duration - (Time.time - time_start);
-            time_label.text = $"{(int)(t/60f)}:{t%60f:00.0}";
-            yield return new WaitForFixedUpdate();
+            time_remaining = game_duration - (Time.time - time_start);
+            time_label.text = $"{(int)(time_remaining / 60f)}:{time_remaining % 60f:00.0}";
+            yield return new WaitForEndOfFrame();
         }
         game_over = true;
+        Hide(ref overlay);
+        Show(ref post_game);
         audio_source.PlayOneShot(audio.GetClip(Period_Buzzer));
-        Debug.Log("Game timer is done.");
         yield break;
+    }
+
+    IEnumerator PuckOutOfBounds()
+    {
+        yield return new WaitForSeconds(2);
+        Debug.Log("reset puck");
+        puck.DropFrom(4 * Vector3.up);
     }
 
     void UpdateScore()
     {
         score_label.text = $"{score[0]}   -   {score[1]}";
+    }
+
+    void Hide(ref CanvasGroup menu)
+    {
+        menu.alpha = 0;
+        menu.blocksRaycasts = false;
+        menu.interactable = false;
+    }
+
+    void Show(ref CanvasGroup menu)
+    {
+        menu.alpha = 1;
+        menu.blocksRaycasts = true;
+        menu.interactable = true;
+    }
+
+    void SetCursor(bool in_menu)
+    {
+        Cursor.lockState = (Cursor.visible=in_menu) ? CursorLockMode.None : CursorLockMode.Locked;
+        Time.timeScale = in_menu ? 0 : 1;
     }
 }

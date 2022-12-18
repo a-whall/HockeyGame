@@ -15,21 +15,17 @@ using UnityEngine;
         Puck_Board_1,
         Puck_Board_2,
         Puck_Board_3,
-        Puck_Board_4,
-        Puck_Board_5,
-        Puck_Board_6,
-        Puck_Board_7,
         Puck_Glass_1,
         Puck_Glass_2,
-        Puck_Glass_3,
         Puck_Ice,
         Puck_Post_1,
         Puck_Post_2,
         Puck_Stick_1,
         Puck_Stick_2,
         Puck_Stick_3,
-        Puck_Stick_4,
-        Puck_Stick_5,
+        Shot_1,
+        Shot_2,
+        Shot_3,
         Stick_Ice,
         Stick_Ice_1,
         Stick_Ice_2,
@@ -48,10 +44,6 @@ using UnityEngine;
     [Header("Volume")]
     public float sfx_volume;
     public float ambient_volume;
-
-    public AudioManager()
-    {
-    }
 
     public AudioClip GetClip(AudioID type) =>
         type == AudioID.None ? null :  audio_clips[(int)type];

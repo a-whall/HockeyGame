@@ -13,7 +13,7 @@ using static UnityEngine.Mathf;
 
 public class Player : MonoBehaviour
 {
-    [Serializable] private class GameObjects { public GameObject head, body, stick, cam; }
+    [Serializable] private class GameObjects { public GameObject head, body, stick; }
     [Serializable] private class Rigidbodies { public Rigidbody body, stick; }
 
     public bool is_idle = true;
@@ -23,14 +23,14 @@ public class Player : MonoBehaviour
     public bool sprint = false;
     public bool braking = false;
 
-    [Header("Translation Control Variables")]
+    [Header("Translation Physics Variables")]
     [SerializeField] internal Vector3 move_direction;
     [SerializeField] float sprint_force;
     [SerializeField] float braking_drag;
     [SerializeField] float regular_drag;
     [SerializeField] float max_speed;
 
-    [Header("Rotation Variables (P-I-D controller)")]
+    [Header("Rotation Physics Variables (P-I-D controller)")]
     [Tooltip("Desired angle of rotation about the upright axis.")]
     [SerializeField] internal float desired_Ө;
     [Tooltip("Rigidbody angle of rotation about the upright axis.")]
@@ -48,7 +48,7 @@ public class Player : MonoBehaviour
     [Tooltip("Running total of steady state error. This value gets scaled by Ki and fixedDeltaTime before being added as torque.")]
     [SerializeField] float I;
 
-    [Header("Stick Control Variables")]
+    [Header("Stick Physics Variables")]
     [SerializeField] float starting_stick_height;
     [SerializeField] float raise_stick_height;
     [SerializeField] int frame_stick_up;
@@ -83,6 +83,7 @@ public class Player : MonoBehaviour
         rigidbodies.stick = gameobjects.stick.GetComponent<Rigidbody>();
 
         desired_Ө = gameobjects.body.transform.eulerAngles.y;
+        Debug.Log($"starting Y angle: {desired_Ө}");
         starting_stick_height = gameobjects.stick.transform.position.y;
     }
 
@@ -99,7 +100,7 @@ public class Player : MonoBehaviour
 
         // Apply an impulse on sprint (Note: scales inversely with mass).
         if (Use(ref sprint))
-            Body.AddForce(sprint_force * move_direction, ForceMode.Impulse);
+            Body.AddForce(sprint_force * move_direction, ForceMode.Acceleration);
 
         // Apply a damping force if player exceeds speed limit.
         if (Body.velocity.magnitude > max_speed)

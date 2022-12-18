@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using static AudioManager.AudioID;
 
@@ -11,7 +9,6 @@ public class Stick : MonoBehaviour
 
     void OnCollisionEnter(Collision c)
     {
-        //Debug.Log($"stick-{c.gameObject.name}");
         PlayAppropriateSoundEffect(c.relativeVelocity.magnitude, c.gameObject);
     }
 

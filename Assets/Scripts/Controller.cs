@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using static UnityEngine.Mathf;
-using static UnityEngine.Input;
 
 public class Controller : MonoBehaviour
 {
