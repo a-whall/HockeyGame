@@ -18,17 +18,22 @@ public class GoalieAI : MonoBehaviour
     [SerializeField] Vector3 desired_position;
     [SerializeField] Vector3 current_velocity;
     [SerializeField] Vector3 desired_velocity;
+    [Tooltip("The movement direction controlled by this script is scaled by this value. For fairness, it should be close in value to the PlayerController's key_sensitivity attribute.")]
     [SerializeField] float acceleration;
     [SerializeField] float damping;
     [SerializeField] float net_distance;
+    public bool let_one_in;
 
 
     void Start()
     {
-        // Initialize point of rotation
+        net.on_goal_callback.Add(() => { let_one_in = true; });
+        self.facing_forward = net.transform.position.z > 0;
+
+        // Initialize point of rotation in xz plane.
         point_of_rotation = new Vector3(1, 0, 1);
         point_of_rotation.Scale(net.transform.position);
-        point_of_rotation += new Vector3(0, 0, 0.6535f); // TODO: account for which way the net is facing.
+        point_of_rotation += net.depth * (self.facing_forward ? forward : back);
     }
 
     void Update()
@@ -41,42 +46,92 @@ public class GoalieAI : MonoBehaviour
         Vector3 puck_position = puck.transform.position;
         puck_position.Scale(new Vector3(1, 0, 1));
 
-        // Vector in the direction pointing from point of rotation to current position.
-        Vector3 NP = (current_position - point_of_rotation).normalized;
+        // -------------------------------------------
+        //  Varying behavior for different conditions
+        // -------------------------------------------
 
-        // if the goalie is facing the -z direction.
-        if (net.transform.position.z > 0) {
-            self.desired_Ө = Acos(Dot(right, NP));
+        // If a goal was scored, do nothing until the puck moves far enough away from the net.
+        if (let_one_in && (puck_position - net.transform.position).magnitude < 2.5) {
+            Debug.Log("let one in");
+            return;
         }
+        // Once puck does move far enough away. Go back to goaltending.
+        else if (let_one_in) {
+            Debug.Log("Puck removed from net");
+            let_one_in = false;
+        }
+        // If the puck is behind the net: hug the corner.
+        else if (puck_position.z > Abs(point_of_rotation.z)) {
+
+        }
+        // Otherwise do default goalie behavior.
         else {
-            self.desired_Ө = Acos(Dot(left, NP));
+            Vector3 RP = (current_position - point_of_rotation).normalized;
+            self.desired_Ө = Acos(Dot(right, RP)) * Rad2Deg;
+            // Set desired position based on the position of the puck and the point of rotation.
+            desired_position = point_of_rotation + net_distance * (puck_position - point_of_rotation).normalized;
+            // TODO: Deflection shooting based on puck velocity.
         }
-        self.desired_Ө *= Rad2Deg;
 
-        desired_position = point_of_rotation + net_distance * (puck_position - point_of_rotation).normalized;
+        // ---------------------------------------------------------------------
+        //  Constant update of physics variables to control player (PD-control)
+        //        (AI sets move_direction, Player.cs handles the rest)
+        // ---------------------------------------------------------------------
 
-        // Sort of acts as a spring towards desired position similar to how players spring to angle.
-        // The AI only needs to set move_direction, the player script will handle physical movement
-        // in it's own Update and FixedUpdate functions which are set to execute afterwards.
+        // If not at the desired position, set move direction scaled by acceleration to control goalie speed. 
         if (self.Body.position != desired_position) {
             self.braking = false;
+
             Vector3 current_position_to_desired_position = desired_position - self.Body.position;
-            self.move_direction = acceleration * current_position_to_desired_position.normalized;
-            self.move_direction -= damping * current_velocity;
+            self.move_direction = current_position_to_desired_position.normalized;
+
+            desired_velocity = self.max_speed * self.move_direction;
+
+            self.move_direction *= acceleration;
         }
+        // If desired position is reached, apply brake so that player can't easily push their way through.
         else {
             self.braking = true;
-            self.move_direction = zero;
+            self.move_direction = desired_velocity = zero;
         }
 
-        // get a desired position from the position of the puck and the point of rotation. (kinematic pursuit)
+        self.move_direction -= damping * (current_velocity - desired_velocity);
 
-        // if not at the desired position, move to that position
+        // sense when self has possession.
 
-        // if at the desired position and velocity is non zero (meaning that the goalie will overshoot) brake to stop.
+        // if pucks velocity is high, do a deflection shooting method correction of desired position.
+    }
 
-        // if player is close to the goal and has posession the puck, brake so that the player can't push through the goalie,
+    void OnTriggerEnter(Collider c)
+    {
+        Debug.Log("sensed");
+        if (c.CompareTag("Puck")) {
+            Debug.Log("Puck sensed, hittable");
+        }
+    }
 
-        // if puck is in front of the net or in back
+    float LeastPositiveQuadraticSolution(float a, float b, float c)
+    {
+        float solution = -1;
+        float d = b * b - 4 * a * c;
+        if (d >= 0) {
+            d = Sqrt(d);
+            float x = (-b - d) / (2 * a);
+            if (x > 0) solution = x;
+            else {
+                x = (-b + d) / (2 * a);
+                if (x > 0) solution = x;
+            }
+        }
+        return solution;
+    }
+
+    Vector3 ComputeAnalyticDeflectionShot(Vector3 relative_target_position, Vector3 target_velocity)
+    {
+        float a = Dot(target_velocity, target_velocity) - self.max_speed * self.max_speed;
+        float b = 2 * Dot(relative_target_position, target_velocity);
+        float c = Dot(relative_target_position, relative_target_position);
+        float t = LeastPositiveQuadraticSolution(a, b, c);
+        return (t > 0) ? relative_target_position + t * target_velocity : zero;
     }
 }

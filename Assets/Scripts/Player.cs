@@ -28,7 +28,7 @@ public class Player : MonoBehaviour
     [SerializeField] float sprint_force;
     [SerializeField] float braking_drag;
     [SerializeField] float regular_drag;
-    [SerializeField] float max_speed;
+    [SerializeField] internal float max_speed;
 
     [Header("Rotation Physics Variables (P-I-D controller)")]
     [Tooltip("Desired angle of rotation about the upright axis.")]
@@ -83,7 +83,7 @@ public class Player : MonoBehaviour
         rigidbodies.stick = gameobjects.stick.GetComponent<Rigidbody>();
 
         desired_Ө = gameobjects.body.transform.eulerAngles.y;
-        Debug.Log($"starting Y angle: {desired_Ө}");
+
         starting_stick_height = gameobjects.stick.transform.position.y;
     }
 

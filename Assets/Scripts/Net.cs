@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Net : MonoBehaviour
 {
+    [SerializeField] internal float depth;
     public List<Action> on_goal_callback;
 
     void Start()

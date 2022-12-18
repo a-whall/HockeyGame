@@ -2,8 +2,12 @@
 using static UnityEngine.Mathf;
 using static UnityEngine.Input;
 
-public class PlayerController : Controller
+public class PlayerController : MonoBehaviour
 {
+    [SerializeField] protected Player player;
+
+    [SerializeField] protected int frame_spacebar_last_pressed;
+    [SerializeField] protected float dӨ;
     [SerializeField] GameManager game;
 
     [Header("Translation Control")]

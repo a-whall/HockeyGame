@@ -14,7 +14,7 @@ public class Puck : MonoBehaviour
     void Start()
     {
         puckbody = GetComponent<Rigidbody>();
-        puckbody.maxDepenetrationVelocity= 1f;
+        puckbody.maxDepenetrationVelocity= 4f;
     }
 
     void Update()

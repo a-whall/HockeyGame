@@ -1,0 +1,8 @@
+1) Welcome to <GameName>!
+
+2) This game is all about physics!
+You can control your player by using
+the W A S D keys. This gives your
+player an acceleration.
+
+3) 

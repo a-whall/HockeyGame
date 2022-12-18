@@ -15,6 +15,8 @@ using static UnityEngine.Input;
 
 public class GameManager : MonoBehaviour
 {
+    private enum Mode { ShootOut, Match }
+
     [Header("Objects")]
     [SerializeField] Player[] players;
 
@@ -89,10 +91,10 @@ public class GameManager : MonoBehaviour
         score = new(0, 0);
 
         // Set up nets to update score when it senses a goal.
-        var net0 = GameObject.Find("Net(0)").GetComponent<Net>();
+        var net0 = GameObject.Find("Net-0").GetComponent<Net>();
         net0.on_goal_callback.Add(() => score[0] += 1);
         net0.on_goal_callback.Add(UpdateScore);
-        var net1 = GameObject.Find("Net(1)").GetComponent<Net>();
+        var net1 = GameObject.Find("Net-1").GetComponent<Net>();
         net1.on_goal_callback.Add(() => score[1] += 1);
         net1.on_goal_callback.Add(UpdateScore);
 
