@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using static AudioManager.AudioID;
 using static UnityEngine.Input;
+using UnityEngine.SceneManagement;
+using UnityEngine.Audio;
 
 // Resources:
 // ----------
@@ -30,6 +32,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] internal bool game_over;
     [SerializeField] internal bool is_paused;
     [SerializeField] internal Puck puck;
+    [SerializeField] internal bool settings_during_pause;
 
     [Header("Sound Effects")]
     [SerializeField] AudioSource audio_source;
@@ -52,6 +55,12 @@ public class GameManager : MonoBehaviour
 
     [Header("Settings menu")]
     [SerializeField] CanvasGroup settings;
+    [SerializeField] Toggle practice;
+    [SerializeField] Toggle easy;
+    [SerializeField] Toggle normal;
+    [SerializeField] Toggle hard;
+    [SerializeField] AudioSource volume;
+    [SerializeField] Slider slider;
     [SerializeField] Button settings_to_menu;
 
     [Header("Pause Menu")]
@@ -77,6 +86,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] Button post_game_to_menu;
 
     public new AudioManager audio;
+
+    private string game_difficulty = "";
 
     string[] game_instructions = new string[]
     {
@@ -108,15 +119,75 @@ public class GameManager : MonoBehaviour
         pause_to_menu.onClick.AddListener( BackToMenu );
 
         // Tutorial menu buttons.
-        // tutorial_to_menu.onClick.AddListener( BackToMenu );
+        tutorial_to_menu.onClick.AddListener( BackToMenu );
+        next.onClick.AddListener( NextTutorialPage );
+
         // TODO: Finish tutorial menu page.
         // I think for this we can just have the full set of control keys on a single page.
         // The multipage code can be used for educational content
         // the code is on this commit: https://github.com/a-whall/HockeyGame/commit/6c46030b4f5fdb41a673f22938d399f24f8d253f
 
+        // Settings menu difficulty toggle
+        practice.onValueChanged.AddListener( delegate { PracticeDifficulty(); } );
+        easy.onValueChanged.AddListener( delegate { EasyDifficulty(); } );
+        normal.onValueChanged.AddListener( delegate { NormalDifficulty(); } );
+        hard.onValueChanged.AddListener( delegate { HardDifficulty(); } );
+
+        // Settings menu volume slider
+        slider.value = volume.volume;
+
+        settings_to_menu.onClick.AddListener( BackToMenu );
+        pause_to_settings.onClick.AddListener( OpenSettings );
+
+        game_difficulty = "normal";
+
         // Start on the title menu canvas group.
         SetCursor(in_menu:true);
         Show(ref title);
+    }
+
+    void PracticeDifficulty()
+    {
+        if( practice.isOn == true )
+        {
+            easy.isOn = false;
+            normal.isOn = false;
+            hard.isOn = false;
+            game_difficulty = "practice";
+        }
+    }
+
+    void EasyDifficulty()
+    {
+        if( easy.isOn == true )
+        {
+            practice.isOn = false;
+            normal.isOn = false;
+            hard.isOn = false;
+            game_difficulty = "easy";
+        }
+    }
+
+    void NormalDifficulty()
+    {
+        if( normal.isOn == true )
+        {
+            practice.isOn = false;
+            easy.isOn = false;
+            hard.isOn = false;
+            game_difficulty = "normal";
+        }
+    }
+
+    void HardDifficulty()
+    {
+        if( hard.isOn == true )
+        {
+            practice.isOn = false;
+            easy.isOn = false;
+            normal.isOn = false;
+            game_difficulty = "hard";
+        }
     }
 
     void Awake()
@@ -131,6 +202,8 @@ public class GameManager : MonoBehaviour
             return;
         if (GetKeyDown("escape"))
             Pause();
+
+        volume.volume = slider.value;
     }
 
     void OnTriggerExit(Collider other)
@@ -154,6 +227,16 @@ public class GameManager : MonoBehaviour
 
     void OpenSettings()
     {
+        if ( is_paused ) settings_during_pause = true;
+
+        if ( game_difficulty == "practice" ) PracticeDifficulty();
+        else if ( game_difficulty == "easy" ) EasyDifficulty();
+        else if ( game_difficulty == "normal" ) NormalDifficulty();
+        else if ( game_difficulty == "hard" ) HardDifficulty();
+
+        slider.value = volume.volume;
+
+        Hide(ref pause);
         Hide(ref title);
         Show(ref settings);
     }
@@ -164,6 +247,21 @@ public class GameManager : MonoBehaviour
         Show(ref tutorial);
         instruction.text = game_instructions[how_to_page_num - 1];
         instruction_subtext.text = $"How to Play ({how_to_page_num}/4)";
+    }
+
+    void NextTutorialPage()
+    {
+        how_to_page_num += 1;
+
+        instruction_subtext.text = $"How to Play ({how_to_page_num}/4)";
+        instruction.text = game_instructions[how_to_page_num - 1];
+
+        if( how_to_page_num > game_instructions.Length - 1 )
+        {
+            next.gameObject.SetActive(false);
+            tutorial_to_menu.gameObject.transform.position = next.gameObject.transform.position;
+            tutorial_to_menu.GetComponent<Image>().color = next.GetComponent<Image>().color;
+        }
     }
 
     void Pause()
@@ -182,9 +280,21 @@ public class GameManager : MonoBehaviour
 
     void BackToMenu()
     {
-        Hide(ref overlay);
-        Hide(ref tutorial);
-        Show(ref title);
+        if ( settings_during_pause )
+        {
+            Hide(ref settings);
+            Show(ref pause);
+            settings_during_pause = false;
+        }
+        else
+        {
+            Hide(ref overlay);
+            Hide(ref tutorial);
+            Hide(ref pause);
+            Hide(ref settings);
+            Show(ref title);
+            is_paused = false;
+        }
     }
 
     IEnumerator GameTimer(float time_start)
