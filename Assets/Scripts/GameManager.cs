@@ -287,8 +287,8 @@ public class GameManager : MonoBehaviour
         if ( settings_during_pause )
         {
             Show(pause);
-            Show(educational);
             Hide(settings);
+            if ( mode == Mode.Educational ) Show(educational);
             settings_during_pause = false;
         }
         else
@@ -300,10 +300,10 @@ public class GameManager : MonoBehaviour
             Hide(educational);
             Show(title);
             is_paused = false;
+            CleanUpSpawnedGameObjects();
+            menu_camera.gameObject.SetActive(true);
+            game_over = true;
         }
-        CleanUpSpawnedGameObjects();
-        menu_camera.gameObject.SetActive(true);
-        game_over = true;
     }
 
     IEnumerator GameTimer(float time_start)
