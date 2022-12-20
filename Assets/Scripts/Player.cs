@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine;
-using static UnityEngine.Input;
 using static UnityEngine.Mathf;
 
 
@@ -15,6 +14,8 @@ public class Player : MonoBehaviour
 {
     [Serializable] private class GameObjects { public GameObject head, body, stick; }
     [Serializable] private class Rigidbodies { public Rigidbody body, stick; }
+
+    [SerializeField] internal GameManager game;
 
     public bool is_idle = true;
     public bool stick_raised = false;

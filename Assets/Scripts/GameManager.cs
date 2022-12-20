@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using static AudioManager.AudioID;
@@ -6,14 +7,14 @@ using static UnityEngine.Input;
 
 public class GameManager : MonoBehaviour
 {
-    private enum Mode { ShootOut, Match, Educational }
+    internal enum Mode { Practice, Shootout, Educational }
 
-    [Header("Objects")]
-    [SerializeField] Player[] players;
+    [SerializeField] Camera menu_camera;
 
     [Header("Game Session Constants")]
     [SerializeField] float game_duration;
     [SerializeField] int target_frame_rate;
+    [SerializeField] GameObject player_prefab, goalie_prefab, shooter_prefab, puck_prefab;
 
     [Header("Active Game Session Values")]
     [SerializeField] internal Vector2 score;
@@ -23,6 +24,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] internal Puck puck;
     [SerializeField] internal bool settings_during_pause;
     [SerializeField] internal string game_difficulty = "";
+    [SerializeField] internal float volume;
+    [SerializeField] internal Mode mode;
+    [SerializeField] List<Player> players;
+    [SerializeField] List<Puck> pucks;
+    [SerializeField] Net[] nets;
 
     [Header("Sound Effects")]
     [SerializeField] AudioSource audio_source;
@@ -37,6 +43,7 @@ public class GameManager : MonoBehaviour
     [Header("Title Menu")]
     [SerializeField] CanvasGroup title;
     [SerializeField] Button start_game;
+    [SerializeField] Dropdown start_mode;
     [SerializeField] Button title_to_settings;
     [SerializeField] Button start_tutorial;
     [SerializeField] Button start_lesson;
@@ -44,11 +51,9 @@ public class GameManager : MonoBehaviour
     [Header("Settings menu")]
     [SerializeField] CanvasGroup settings;
     [SerializeField] ToggleGroup difficulty;
-    [SerializeField] Toggle practice;
     [SerializeField] Toggle easy;
     [SerializeField] Toggle normal;
     [SerializeField] Toggle hard;
-    [SerializeField] AudioSource volume;
     [SerializeField] Slider slider;
     [SerializeField] Button settings_to_menu;
 
@@ -91,12 +96,11 @@ public class GameManager : MonoBehaviour
         score = new(0, 0);
 
         // Set up nets to update score when it senses a goal.
-        var net0 = GameObject.Find("Net-0").GetComponent<Net>();
-        net0.on_goal_callback.Add(() => score[0] += 1);
-        net0.on_goal_callback.Add(UpdateScore);
-        var net1 = GameObject.Find("Net-1").GetComponent<Net>();
-        net1.on_goal_callback.Add(() => score[1] += 1);
-        net1.on_goal_callback.Add(UpdateScore);
+        nets[0].on_goal_callback.Add(() => score[0] += 1);
+        nets[0].on_goal_callback.Add(UpdateScore);
+
+        nets[1].on_goal_callback.Add(() => score[1] += 1);
+        nets[1].on_goal_callback.Add(UpdateScore);
 
         // Title menu buttons.
         start_game.onClick.AddListener( StartNewGame );
@@ -112,13 +116,12 @@ public class GameManager : MonoBehaviour
         next.onClick.AddListener( NextTutorialPage );
 
         // Settings menu difficulty toggle
-        practice.onValueChanged.AddListener( UpdateDifficulty );
         easy.onValueChanged.AddListener( UpdateDifficulty );
         normal.onValueChanged.AddListener( UpdateDifficulty );
         hard.onValueChanged.AddListener( UpdateDifficulty );
 
         // Settings menu volume slider
-        slider.value = volume.volume;
+        slider.value = 1;
 
         settings_to_menu.onClick.AddListener( BackToMenu );
         pause_to_settings.onClick.AddListener( OpenSettings );
@@ -138,7 +141,7 @@ public class GameManager : MonoBehaviour
         if (GetKeyDown("escape"))
             Pause();
 
-        volume.volume = slider.value;
+        volume = slider.value;
     }
 
     void OnTriggerExit(Collider other)
@@ -152,11 +155,40 @@ public class GameManager : MonoBehaviour
         Hide(title);
         Show(overlay);
         SetCursor(in_menu:false);
-        StartCoroutine(GameTimer(time_start:Time.time));
         
-        // TODO: Use Initiate() to create instances of player prefab for each player in the game,
-        // assigning AI to each and selecting one to be the player.
+        mode = (Mode) start_mode.value;
+
+        players.Clear();
+        pucks.Clear();
+
+        // Always create a single player.
+        players.Add(Instantiate(player_prefab, new Vector3(0, 0, -4), Quaternion.identity).GetComponent<Player>());
+
+        if (mode == Mode.Practice) {
+            // Create a single puck (for now).
+            pucks.Add(Instantiate(puck_prefab, new Vector3(0, 4, 0), Quaternion.identity).GetComponent<Puck>());
+            
+            // Create goalie to defend net 0.
+            players.Add( Instantiate(goalie_prefab, new Vector3(0, 0, 24), Quaternion.identity).GetComponent<Player>() );
+            players[1].GetComponent<GoalieAI>().net = nets[0];
+            players[1].GetComponent<GoalieAI>().puck = pucks[0];
+            
+            StartCoroutine(GameTimer(time_start: Time.time));
+        }
+        if (mode == Mode.Shootout) {
+
+        }
+        if (mode == Mode.Educational) {
         
+        }
+
+        // Let each spawned object know that this is the game manager.
+        foreach (Player player in players) player.game = this;
+        foreach (Puck puck in pucks) puck.game = this;
+
+        // Switch camera to player camera.
+        menu_camera.gameObject.SetActive(false);
+
         // TODO: Reset game session variables.
     }
 
@@ -164,7 +196,7 @@ public class GameManager : MonoBehaviour
     {
         if ( is_paused ) settings_during_pause = true;
 
-        slider.value = volume.volume;
+        slider.value = volume;
 
         Hide(pause);
         Hide(title);
@@ -225,6 +257,8 @@ public class GameManager : MonoBehaviour
             Show(title);
             is_paused = false;
         }
+        CleanUpSpawnedGameObjects();
+        menu_camera.gameObject.SetActive(true);
     }
 
     IEnumerator GameTimer(float time_start)
@@ -257,18 +291,24 @@ public class GameManager : MonoBehaviour
         game_difficulty = difficulty.GetFirstActiveToggle().name;
     }
 
+    void CleanUpSpawnedGameObjects()
+    {
+        foreach (GameObject g in GameObject.FindGameObjectsWithTag("Spawned"))
+            Destroy(g);
+        foreach (GameObject g in GameObject.FindGameObjectsWithTag("Puck"))
+            Destroy(g);
+    }
+
     void Hide(CanvasGroup menu)
     {
         menu.alpha = 0;
-        menu.blocksRaycasts = false;
-        menu.interactable = false;
+        menu.blocksRaycasts = menu.interactable = false;
     }
 
     void Show(CanvasGroup menu)
     {
         menu.alpha = 1;
-        menu.blocksRaycasts = true;
-        menu.interactable = true;
+        menu.blocksRaycasts = menu.interactable = true;
     }
 
     void SetCursor(bool in_menu)

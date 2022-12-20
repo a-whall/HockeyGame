@@ -6,14 +6,13 @@ using static UnityEngine.Vector3;
 public class GoalieAI : MonoBehaviour
 {
     [Tooltip("The net that this goalie will defend.")]
-    [SerializeField] Net net;
+    [SerializeField] internal Net net;
     [Tooltip("This is a point positioned at the back of the net that the goalie will rotate around.")]
     [SerializeField] Vector3 point_of_rotation;
     [Tooltip("For now it's assumed that there will be just one human player in the game.")]
-    [SerializeField] Player human_player;
     [SerializeField] Player self;
     [Header("")]
-    [SerializeField] Puck puck;
+    [SerializeField] internal Puck puck;
     [Header("")]
     [SerializeField] Vector3 current_position;
     [SerializeField] Vector3 desired_position;

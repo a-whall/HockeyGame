@@ -4,7 +4,6 @@ using static AudioManager.AudioID;
 public class Stick : MonoBehaviour
 {
     [SerializeField] AudioSource audio_source;
-    [SerializeField] GameManager game;
     [SerializeField] Player player;
     [SerializeField] bool use_audio;
 
@@ -30,8 +29,8 @@ public class Stick : MonoBehaviour
 
         if (collided.CompareTag("Ice")) to_play = Stick_Ice;
 
-        AudioClip sound_effect = game.audio.GetClip(to_play);
+        AudioClip sound_effect = player.game.audio.GetClip(to_play);
 
-        if (sound_effect != null) audio_source.PlayOneShot(sound_effect);
+        if (sound_effect != null) audio_source.PlayOneShot(sound_effect, player.game.volume);
     }
 }

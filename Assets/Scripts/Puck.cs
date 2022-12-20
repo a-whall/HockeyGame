@@ -8,7 +8,7 @@ public class Puck : MonoBehaviour
     [SerializeField] float lift_sensitivity;
     [SerializeField] Rigidbody puckbody;
     [SerializeField] AudioSource audio_source;
-    [SerializeField] GameManager game;
+    [SerializeField] internal GameManager game;
     [SerializeField] bool stick_enter_cooldown;
     [SerializeField] bool stick_exit_cooldown;
     void Start()
@@ -121,7 +121,7 @@ public class Puck : MonoBehaviour
 
         AudioClip sound_effect = game.audio.GetClip(to_play);
 
-        if (sound_effect) audio_source.PlayOneShot(sound_effect);
+        if (sound_effect) audio_source.PlayOneShot(sound_effect, game.volume);
     }
 
     public void DropFrom(Vector3 location)
