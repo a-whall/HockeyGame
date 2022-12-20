@@ -1,0 +1,53 @@
+
+You have to implement a 3D video game i.e., it should involve three-dimensional scenes (it is ok to have 2D menus, panels, etc.).
+[X] It must have an educational component. Helps teenagers learn something, such as PID control.
+[X] It must be interactive, the user interacts with the game through an input device.
+[ ] It must have rules that players should follow (remember the definitions of a game discussed in the first lecture).
+[X] It must contain animations.
+[X] It must incorporate some form of AI.
+[X] You should use either the Unity or Unreal engine.
+[ ] Include a README.txt pointing to the parts of source code you wrote.
+[X] Your game should NOT contain or promote violence, sexism, racism.
+
+[ ] Idea of game [4 points]:
+Great     : The game has its own novel idea / education component.
+Acceptable: The game reproduces the main idea of other classic educational games.
+Bad       : The game has no clear idea or organization; it is just random elements glued together.
+            Little or no educational value.
+            Reproducing the assignments is bad (be more creative than that).
+
+[ ] Key Elements [4 points]:
+Great     : The main character, educational components, obstacles, enemies, items, etc. are all very well-designed.
+Acceptable: The types of educational components, enemies, items, etc. are limited, making the game a bit dull.
+Bad       : No variety in educational components, enemies, items, etc.
+
+[ ] Mechanics [3 points]: (see https://en.wikipedia.org/wiki/Game_mechanics)
+Great     : The mechanics are designed to fulfill the goals of the 3D game; they make the game intuitive and fun.
+Acceptable: Basic mechanics are in place to roughly accomplish the tasks of the 3D game.
+Bad       : The mechanics make the game impossible or too difficult to play.
+
+[ ] AI [4 points]:
+Great     : The NPCs use sophisticated pathfinding (e.g., NavMeshes, real-time A*) or/and decision making (decision trees, random forests, ML), making the gameplay challenging.
+Acceptable: There's a primitive form of AI for basic kinematics (kinematic obstacle avoidance, kinematic pursue and arrival) or/and basic decision making (e.g., FSMs, rule systems).
+Bad       : There's no AI, or the NPCs perform wrong/random movements and decisions. 
+
+[ ] Physics/Animations [3 points]:
+Great     : Physics-based animation, utilize physics in some creative way to control the game, create effects, implement your own, well-behaved physics engine.
+Acceptable: Use basic/default physics, collision detection, rigid body simulation based on what Unity/Unreal and their assets provide.
+Bad       : the animations look choppy or broken, nothing moves at all, or things move in an uncomprehensible manner.
+
+[ ] UI [2 points]:
+Acceptable: Contains at least a menu or a tutorial in the beginning with instructions/guidance on how to play the game. The game can be paused.
+Bad       : The player does not have any idea what to do in the beginning or throughout the game. The game cannot be paused.
+
+[ ] Performance [2 points]:
+Acceptable: Runs at a playable rate without lagging or framerate issues on the device you will use for your final presentation.
+Bad       : Game has severe lagging and unacceptable framerate (<30FPS)  on the device you will use for your final presentation.
+
+[ ] Aesthetics and Sound Effects [2 points]:
+Great     : incorporate a consistent art style into your game, use a variety of sound effects to improve the gameplay experience.
+Acceptable: sound effects: at least you use sound effects in your game - the sound effects are related to the gameplay.
+Bad       : no sound effects, or sound effects unrelated to the gameplay.
+
+[ ] Final Video [1 point]:
+Demonstrate the gameplay (min 3 min, max 10 min).

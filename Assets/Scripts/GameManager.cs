@@ -3,21 +3,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using static AudioManager.AudioID;
 using static UnityEngine.Input;
-using UnityEngine.SceneManagement;
-using UnityEngine.Audio;
-
-// Resources:
-// ----------
-// Useful guide on positioning UI elements:
-// https://www.youtube.com/watch?v=FeheZqu85WI
-// The canvas group, switching groups made easy by setting alpha to 1 and blocksRaycasts to false:
-// https://docs.unity3d.com/ScriptReference/CanvasGroup.html
-// C# "string interpolation" (basically js template strings):
-// https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/tokens/interpolated
 
 public class GameManager : MonoBehaviour
 {
-    private enum Mode { ShootOut, Match }
+    private enum Mode { ShootOut, Match, Educational }
 
     [Header("Objects")]
     [SerializeField] Player[] players;
@@ -33,13 +22,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] internal bool is_paused;
     [SerializeField] internal Puck puck;
     [SerializeField] internal bool settings_during_pause;
+    [SerializeField] internal string game_difficulty = "";
 
     [Header("Sound Effects")]
     [SerializeField] AudioSource audio_source;
 
     [Space][Header("-- UI Elements --")][Space]
-
-    // TODO: Finish declaring and hooking all ui elements for each canvas group.
 
     [Header("Game Overlay")]
     [SerializeField] CanvasGroup overlay;
@@ -55,6 +43,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Settings menu")]
     [SerializeField] CanvasGroup settings;
+    [SerializeField] ToggleGroup difficulty;
     [SerializeField] Toggle practice;
     [SerializeField] Toggle easy;
     [SerializeField] Toggle normal;
@@ -87,8 +76,6 @@ public class GameManager : MonoBehaviour
 
     public new AudioManager audio;
 
-    private string game_difficulty = "";
-
     string[] game_instructions = new string[]
     {
         "Controls:\n\nW - forward\nS - backward\nA - left\nD - right",
@@ -99,6 +86,8 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        Screen.fullScreenMode = FullScreenMode.Windowed;
+
         score = new(0, 0);
 
         // Set up nets to update score when it senses a goal.
@@ -122,16 +111,11 @@ public class GameManager : MonoBehaviour
         tutorial_to_menu.onClick.AddListener( BackToMenu );
         next.onClick.AddListener( NextTutorialPage );
 
-        // TODO: Finish tutorial menu page.
-        // I think for this we can just have the full set of control keys on a single page.
-        // The multipage code can be used for educational content
-        // the code is on this commit: https://github.com/a-whall/HockeyGame/commit/6c46030b4f5fdb41a673f22938d399f24f8d253f
-
         // Settings menu difficulty toggle
-        practice.onValueChanged.AddListener( delegate { PracticeDifficulty(); } );
-        easy.onValueChanged.AddListener( delegate { EasyDifficulty(); } );
-        normal.onValueChanged.AddListener( delegate { NormalDifficulty(); } );
-        hard.onValueChanged.AddListener( delegate { HardDifficulty(); } );
+        practice.onValueChanged.AddListener( UpdateDifficulty );
+        easy.onValueChanged.AddListener( UpdateDifficulty );
+        normal.onValueChanged.AddListener( UpdateDifficulty );
+        hard.onValueChanged.AddListener( UpdateDifficulty );
 
         // Settings menu volume slider
         slider.value = volume.volume;
@@ -139,65 +123,16 @@ public class GameManager : MonoBehaviour
         settings_to_menu.onClick.AddListener( BackToMenu );
         pause_to_settings.onClick.AddListener( OpenSettings );
 
-        game_difficulty = "normal";
-
         // Start on the title menu canvas group.
         SetCursor(in_menu:true);
-        Show(ref title);
-    }
-
-    void PracticeDifficulty()
-    {
-        if( practice.isOn == true )
-        {
-            easy.isOn = false;
-            normal.isOn = false;
-            hard.isOn = false;
-            game_difficulty = "practice";
-        }
-    }
-
-    void EasyDifficulty()
-    {
-        if( easy.isOn == true )
-        {
-            practice.isOn = false;
-            normal.isOn = false;
-            hard.isOn = false;
-            game_difficulty = "easy";
-        }
-    }
-
-    void NormalDifficulty()
-    {
-        if( normal.isOn == true )
-        {
-            practice.isOn = false;
-            easy.isOn = false;
-            hard.isOn = false;
-            game_difficulty = "normal";
-        }
-    }
-
-    void HardDifficulty()
-    {
-        if( hard.isOn == true )
-        {
-            practice.isOn = false;
-            easy.isOn = false;
-            normal.isOn = false;
-            game_difficulty = "hard";
-        }
-    }
-
-    void Awake()
-    {
-        QualitySettings.vSyncCount = 0;  // Disable Vsync
-        Application.targetFrameRate = target_frame_rate;
+        Show(title);
     }
 
     void Update()
     {
+        if (GetKeyDown("f11")) {
+            
+        }
         if (game_over || is_paused)
             return;
         if (GetKeyDown("escape"))
@@ -214,8 +149,8 @@ public class GameManager : MonoBehaviour
 
     void StartNewGame()
     {
-        Hide(ref title);
-        Show(ref overlay);
+        Hide(title);
+        Show(overlay);
         SetCursor(in_menu:false);
         StartCoroutine(GameTimer(time_start:Time.time));
         
@@ -229,22 +164,17 @@ public class GameManager : MonoBehaviour
     {
         if ( is_paused ) settings_during_pause = true;
 
-        if ( game_difficulty == "practice" ) PracticeDifficulty();
-        else if ( game_difficulty == "easy" ) EasyDifficulty();
-        else if ( game_difficulty == "normal" ) NormalDifficulty();
-        else if ( game_difficulty == "hard" ) HardDifficulty();
-
         slider.value = volume.volume;
 
-        Hide(ref pause);
-        Hide(ref title);
-        Show(ref settings);
+        Hide(pause);
+        Hide(title);
+        Show(settings);
     }
 
     void StartTutorial()
     {
-        Hide(ref title);
-        Show(ref tutorial);
+        Hide(title);
+        Show(tutorial);
         instruction.text = game_instructions[how_to_page_num - 1];
         instruction_subtext.text = $"How to Play ({how_to_page_num}/4)";
     }
@@ -267,14 +197,14 @@ public class GameManager : MonoBehaviour
     void Pause()
     {
         is_paused = true;
-        Show(ref pause);
+        Show(pause);
         SetCursor(in_menu:true);
     }
 
     void Unpause()
     {
         is_paused = false;
-        Hide(ref pause);
+        Hide(pause);
         SetCursor(in_menu:false);
     }
 
@@ -282,17 +212,17 @@ public class GameManager : MonoBehaviour
     {
         if ( settings_during_pause )
         {
-            Hide(ref settings);
-            Show(ref pause);
+            Show(pause);
+            Hide(settings);
             settings_during_pause = false;
         }
         else
         {
-            Hide(ref overlay);
-            Hide(ref tutorial);
-            Hide(ref pause);
-            Hide(ref settings);
-            Show(ref title);
+            Hide(overlay);
+            Hide(tutorial);
+            Hide(pause);
+            Hide(settings);
+            Show(title);
             is_paused = false;
         }
     }
@@ -305,8 +235,8 @@ public class GameManager : MonoBehaviour
             yield return new WaitForEndOfFrame();
         }
         game_over = true;
-        Hide(ref overlay);
-        Show(ref post_game);
+        Hide(overlay);
+        Show(post_game);
         audio_source.PlayOneShot(audio.GetClip(Period_Buzzer));
         yield break;
     }
@@ -314,7 +244,6 @@ public class GameManager : MonoBehaviour
     IEnumerator PuckOutOfBounds()
     {
         yield return new WaitForSeconds(2);
-        Debug.Log("reset puck");
         puck.DropFrom(4 * Vector3.up);
     }
 
@@ -323,14 +252,19 @@ public class GameManager : MonoBehaviour
         score_label.text = $"{score[0]}   -   {score[1]}";
     }
 
-    void Hide(ref CanvasGroup menu)
+    public void UpdateDifficulty(bool b)
+    {
+        game_difficulty = difficulty.GetFirstActiveToggle().name;
+    }
+
+    void Hide(CanvasGroup menu)
     {
         menu.alpha = 0;
         menu.blocksRaycasts = false;
         menu.interactable = false;
     }
 
-    void Show(ref CanvasGroup menu)
+    void Show(CanvasGroup menu)
     {
         menu.alpha = 1;
         menu.blocksRaycasts = true;

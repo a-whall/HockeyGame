@@ -20,6 +20,11 @@ public class PlayerController : MonoBehaviour
     [Tooltip("Bounds mouse input to prevent the player from rotating too much in a single Update.")]
     [SerializeField] float mouse_axis_cutoff;
 
+    [Header("Stick Control")]
+    [SerializeField] float time_stick_up;
+    [SerializeField] float time_stick_down;
+    [SerializeField] float stick_change_time;
+
     [Header("Camera Control Variables")]
     [SerializeField] float cam_distance;
     [SerializeField] Vector3 cam_offset;
@@ -27,13 +32,12 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
+        
     }
 
     void Update()
     {
-        if (game.is_paused)
+        if (game != null && game.is_paused)
             return;
 
         // Take directional key input. Opposing directions cancel.
@@ -60,7 +64,7 @@ public class PlayerController : MonoBehaviour
         if (Abs(DeltaAngle(player.current_Ө, player.desired_Ө + dӨ)) < 45f)
             player.desired_Ө += player.desired_Ө + dӨ >= 360 ? dӨ - 360f : player.desired_Ө + dӨ < 0f ? dӨ + 360f : dӨ;
 
-        // stick_raised = GetMouseButton(0);
+        player.stick_raised = GetMouseButton(0);
 
         // When puck breaks contact with stick. The puck will receive an upward force if wants_puck_lift is true.
         player.wants_puck_lift = GetMouseButton(1);

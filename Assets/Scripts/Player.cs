@@ -49,10 +49,8 @@ public class Player : MonoBehaviour
     [SerializeField] float I;
 
     [Header("Stick Physics Variables")]
-    [SerializeField] float starting_stick_height;
-    [SerializeField] float raise_stick_height;
-    [SerializeField] int frame_stick_up;
-    [SerializeField] int frame_stick_down;
+    [SerializeField] ConfigurableJoint joint;
+    [SerializeField] float raised_stick_height;
 
     [Header("Statistics Variables")]
     public int saves = 0;
@@ -74,8 +72,10 @@ public class Player : MonoBehaviour
         Time.fixedDeltaTime = 0.001f;
 
         Physics.IgnoreCollision(gameobjects.head.GetComponent<Collider>(), gameobjects.body.GetComponent<Collider>());
-        Physics.IgnoreCollision(gameobjects.body.GetComponent<Collider>(), gameobjects.stick.GetComponent<Collider>());
-        Physics.IgnoreCollision(gameobjects.head.GetComponent<Collider>(), gameobjects.stick.GetComponent<Collider>());
+        foreach (Collider stick_compound_collider in gameobjects.stick.GetComponentsInChildren<Collider>()) {
+            Physics.IgnoreCollision(stick_compound_collider, gameobjects.body.GetComponent<Collider>());
+            Physics.IgnoreCollision(stick_compound_collider, gameobjects.head.GetComponent<Collider>());
+        }
 
         rigidbodies.body = gameobjects.body.GetComponent<Rigidbody>();
         Body.maxAngularVelocity = 12;
@@ -83,13 +83,13 @@ public class Player : MonoBehaviour
         rigidbodies.stick = gameobjects.stick.GetComponent<Rigidbody>();
 
         desired_Ө = gameobjects.body.transform.eulerAngles.y;
-
-        starting_stick_height = gameobjects.stick.transform.position.y;
     }
 
     void Update()
     {
         Body.drag = braking ? braking_drag : regular_drag;
+        
+        Body.velocity = Vector3.ClampMagnitude(Body.velocity, max_speed);
     }
 
     // All physics computations done here.
@@ -102,10 +102,6 @@ public class Player : MonoBehaviour
         if (Use(ref sprint))
             Body.AddForce(sprint_force * move_direction, ForceMode.Acceleration);
 
-        // Apply a damping force if player exceeds speed limit.
-        if (Body.velocity.magnitude > max_speed)
-            Body.AddForce((max_speed - Body.velocity.magnitude) * Body.velocity.normalized, ForceMode.VelocityChange);
-
         // Apply PID control torque.
         current_Ө = Body.rotation.eulerAngles.y;
         current_Ω = Body.angularVelocity.y;
@@ -113,12 +109,11 @@ public class Player : MonoBehaviour
         float PID_control_torque = Kp * DeltaAngle(current_Ө, desired_Ө) + Ki * I - Kd * (current_Ω - desired_Ω);
         Body.AddTorque(PID_control_torque * Vector3.up, ForceMode.Acceleration);
 
-        // TODO: interpolate this or use configurable joint to set the anchor position. Raise stick.
-        if (stick_raised)
-            Stick.MovePosition(new Vector3(Stick.position.x, starting_stick_height, Stick.position.z) + raise_stick_height * Vector3.up);
+        // Set stick joint target position up the y axis. Uses unity's configurable joint PD controller.
+        joint.targetPosition = stick_raised ? new Vector3(Stick.position.x, raised_stick_height, Stick.position.z) : Vector3.zero;
     }
 
     // Returns parameter value but switches referenced bool off if it's on.
     // (b:T) => T; b = F; otherwise (b:F) => F;
-    private bool Use(ref bool b) => b && !(b = false);
+    bool Use(ref bool b) => b && !(b = false);
 }

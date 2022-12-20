@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering;
 using static UnityEngine.Mathf;
 using static UnityEngine.Vector3;
 
@@ -52,22 +53,23 @@ public class GoalieAI : MonoBehaviour
 
         // If a goal was scored, do nothing until the puck moves far enough away from the net.
         if (let_one_in && (puck_position - net.transform.position).magnitude < 2.5) {
-            Debug.Log("let one in");
+            self.move_direction = zero;
             return;
         }
         // Once puck does move far enough away. Go back to goaltending.
         else if (let_one_in) {
-            Debug.Log("Puck removed from net");
             let_one_in = false;
         }
         // If the puck is behind the net: hug the corner.
-        else if (puck_position.z > Abs(point_of_rotation.z)) {
-
+        else if (Abs(puck_position.z) > Abs(net.transform.position.z)) {
+            // Vector in direction from point of rotation to corner
+            float angle = 56.84f * Deg2Rad;
+            float x_offset = (puck_position.x > 0) ? Sin(angle) : -Sin(angle);
+            float z_offset = (puck_position.z < 0) ? Cos(angle) : -Cos(angle);
+            desired_position = point_of_rotation + new Vector3(x_offset, 0, z_offset) * net_distance;
         }
         // Otherwise do default goalie behavior.
         else {
-            Vector3 RP = (current_position - point_of_rotation).normalized;
-            self.desired_Ө = Acos(Dot(right, RP)) * Rad2Deg;
             // Set desired position based on the position of the puck and the point of rotation.
             desired_position = point_of_rotation + net_distance * (puck_position - point_of_rotation).normalized;
             // TODO: Deflection shooting based on puck velocity.
@@ -78,7 +80,10 @@ public class GoalieAI : MonoBehaviour
         //        (AI sets move_direction, Player.cs handles the rest)
         // ---------------------------------------------------------------------
 
-        // If not at the desired position, set move direction scaled by acceleration to control goalie speed. 
+        Vector3 RP = (current_position - point_of_rotation).normalized;
+        self.desired_Ө = Acos(Dot(right, RP)) * Rad2Deg;
+
+        // If not at the desired position, set move direction scaled by acceleration to control goalie speed.
         if (self.Body.position != desired_position) {
             self.braking = false;
 
@@ -92,7 +97,7 @@ public class GoalieAI : MonoBehaviour
         // If desired position is reached, apply brake so that player can't easily push their way through.
         else {
             self.braking = true;
-            self.move_direction = desired_velocity = zero;
+            self.move_direction = desired_velocity = current_velocity = zero;
         }
 
         self.move_direction -= damping * (current_velocity - desired_velocity);

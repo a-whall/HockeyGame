@@ -1,0 +1,6 @@
+
+[12/19/2022] Physics material properties seem to change randomly during runtime.
+--------------------------------------------------------------------------------
+Puck inconsistently bounces off wall with a lot of normal velocity or none at all.
+Other people in this thread seem to be having similar issues:
+https://forum.unity.com/threads/physics-material-ignored-at-random-2019-4-0f1.956073/

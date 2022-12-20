@@ -15,12 +15,17 @@ public class Puck : MonoBehaviour
     {
         puckbody = GetComponent<Rigidbody>();
         puckbody.maxDepenetrationVelocity= 4f;
+        
     }
 
     void Update()
     {
         if (puckbody.velocity.magnitude > max_speed)
             puckbody.AddForce((max_speed - puckbody.velocity.magnitude) * puckbody.mass * puckbody.velocity.normalized);
+    }
+
+    void OnTriggerEnter(Collider other) {
+        Debug.Log("Puck Trigger Enter");
     }
 
     void OnCollisionEnter(Collision c)
@@ -38,7 +43,7 @@ public class Puck : MonoBehaviour
         if (c.gameObject.CompareTag("Stick")) {
             Player player = c.transform.parent.GetComponent<Player>();
             if (player.wants_puck_lift && player.Body.angularVelocity.magnitude > 3)
-                puckbody.AddForce(lift_sensitivity * Vector3.up);
+                puckbody.AddForce(lift_sensitivity * Vector3.up, ForceMode.Acceleration);
             else if (!player.wants_puck_lift) {
                 
             }
