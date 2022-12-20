@@ -4,7 +4,7 @@ using static AudioManager.AudioID;
 public class Stick : MonoBehaviour
 {
     [SerializeField] AudioSource audio_source;
-    [SerializeField] Player player;
+    [SerializeField] internal Player player;
     [SerializeField] bool use_audio;
 
     void OnCollisionEnter(Collision c)

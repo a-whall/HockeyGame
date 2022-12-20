@@ -15,6 +15,7 @@ TagManager:
   - Board
   - Glass
   - Spawned
+  - GoalSensor
   layers:
   - Default
   - TransparentFX

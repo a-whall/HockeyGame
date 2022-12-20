@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using static AudioManager.AudioID;
@@ -21,6 +22,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] internal float time_remaining;
     [SerializeField] internal bool game_over;
     [SerializeField] internal bool is_paused;
+    [SerializeField] internal bool ignore_pause;
     [SerializeField] internal Puck puck;
     [SerializeField] internal bool settings_during_pause;
     [SerializeField] internal string game_difficulty = "";
@@ -91,6 +93,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] CanvasGroup post_game;
     [SerializeField] Text stats;
     [SerializeField] Button post_game_to_menu;
+
+    [Header("Scored")]
+    [SerializeField] CanvasGroup scored;
+    [SerializeField] Text scored_label;
 
     public new AudioManager audio;
 
@@ -214,6 +220,7 @@ public class GameManager : MonoBehaviour
         menu_camera.gameObject.SetActive(false);
 
         // TODO: Reset game session variables.
+        game_over = false;
     }
 
     void OpenSettings()
@@ -293,9 +300,10 @@ public class GameManager : MonoBehaviour
             Hide(educational);
             Show(title);
             is_paused = false;
-            CleanUpSpawnedGameObjects();
-            menu_camera.gameObject.SetActive(true);
         }
+        CleanUpSpawnedGameObjects();
+        menu_camera.gameObject.SetActive(true);
+        game_over = true;
     }
 
     IEnumerator GameTimer(float time_start)
@@ -316,6 +324,18 @@ public class GameManager : MonoBehaviour
     {
         yield return new WaitForSeconds(2);
         puck.DropFrom(4 * Vector3.up);
+    }
+
+    internal IEnumerator GoalScored(Puck puck_that_scored)
+    {
+        ignore_pause = true;
+        Show(scored);
+        scored_label.text = $"Nice Shot!\n{puck_that_scored.velocity_on_goal.magnitude * 2.2372f:0.0} mph";
+        yield return new WaitForSeconds(2);
+        puck_that_scored.DropFrom(4 * Vector3.up);
+        puck_that_scored.entered_net = false;
+        Hide(scored);
+        ignore_pause = false;
     }
 
     void UpdateScore()

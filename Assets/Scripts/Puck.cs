@@ -11,6 +11,10 @@ public class Puck : MonoBehaviour
     [SerializeField] internal GameManager game;
     [SerializeField] bool stick_enter_cooldown;
     [SerializeField] bool stick_exit_cooldown;
+    [SerializeField] internal bool entered_net;
+    [SerializeField] internal Player last_who_touched;
+    [SerializeField] internal Vector3 velocity_on_goal;
+
     void Start()
     {
         puckbody = GetComponent<Rigidbody>();
@@ -25,11 +29,20 @@ public class Puck : MonoBehaviour
     }
 
     void OnTriggerEnter(Collider other) {
-        Debug.Log("Puck Trigger Enter");
+        if (other.tag == "GoalSensor" && !entered_net) {
+            entered_net = true;
+            velocity_on_goal = puckbody.velocity;
+            if (game.mode == GameManager.Mode.Practice) {
+                StartCoroutine(game.GoalScored(this));
+            }
+        }
     }
 
     void OnCollisionEnter(Collision c)
     {
+        if (c.gameObject.CompareTag("Stick")) {
+            last_who_touched = c.gameObject.GetComponent<Stick>().player;
+        }
         PlayAppropriateSoundEffectOnEnter(c.relativeVelocity.magnitude, c.gameObject);
         
         // TODO: Move logic to player.
