@@ -70,9 +70,22 @@ public class GameManager : MonoBehaviour
     [SerializeField] Button next;
     [SerializeField] Button tutorial_to_menu;
     [SerializeField] int how_to_page_num = 1;
+    [SerializeField] Vector3 tutorial_to_menu_position;
+	[SerializeField] Color tutorial_to_menu_color;
 
     [Header("Educational Component Menu")]
     [SerializeField] CanvasGroup educational;
+    [SerializeField] Slider kp_slider;
+    [SerializeField] Slider ki_slider;
+    [SerializeField] Slider kd_slider;
+    [SerializeField] Text kp_display;
+    [SerializeField] Text ki_display;
+    [SerializeField] Text kd_display;
+    [SerializeField] Text desired_Ө_display;
+    [SerializeField] Text current_Ө_display;
+    [SerializeField] Text desired_Ω_display;
+    [SerializeField] Text current_Ω_display;
+    [SerializeField] Text I_display;
 
     [Header("Post-Game menu")]
     [SerializeField] CanvasGroup post_game;
@@ -114,6 +127,8 @@ public class GameManager : MonoBehaviour
         // Tutorial menu buttons.
         tutorial_to_menu.onClick.AddListener( BackToMenu );
         next.onClick.AddListener( NextTutorialPage );
+        tutorial_to_menu_position = tutorial_to_menu.transform.position;
+        tutorial_to_menu_color = tutorial_to_menu.GetComponent<Image>().color;
 
         // Settings menu difficulty toggle
         easy.onValueChanged.AddListener( UpdateDifficulty );
@@ -125,6 +140,7 @@ public class GameManager : MonoBehaviour
 
         settings_to_menu.onClick.AddListener( BackToMenu );
         pause_to_settings.onClick.AddListener( OpenSettings );
+
 
         // Start on the title menu canvas group.
         SetCursor(in_menu:true);
@@ -142,6 +158,8 @@ public class GameManager : MonoBehaviour
             Pause();
 
         volume = slider.value;
+
+        if ( mode == Mode.Educational && players[0] != null ) DisplayEduVals();
     }
 
     void OnTriggerExit(Collider other)
@@ -179,7 +197,13 @@ public class GameManager : MonoBehaviour
 
         }
         if (mode == Mode.Educational) {
-        
+            pucks.Add(Instantiate(puck_prefab, new Vector3(0, 4, 0), Quaternion.identity).GetComponent<Puck>());
+            
+            // Educational UI
+            InitializeEduSliders();
+            DisplayEduVals();
+
+            Show(educational);
         }
 
         // Let each spawned object know that this is the game manager.
@@ -200,6 +224,7 @@ public class GameManager : MonoBehaviour
 
         Hide(pause);
         Hide(title);
+        Hide(educational);
         Show(settings);
     }
 
@@ -207,6 +232,10 @@ public class GameManager : MonoBehaviour
     {
         Hide(title);
         Show(tutorial);
+        how_to_page_num = 1;
+        next.gameObject.SetActive(true);
+        tutorial_to_menu.gameObject.transform.position = tutorial_to_menu_position;
+        tutorial_to_menu.GetComponent<Image>().color = tutorial_to_menu_color;
         instruction.text = game_instructions[how_to_page_num - 1];
         instruction_subtext.text = $"How to Play ({how_to_page_num}/4)";
     }
@@ -231,12 +260,18 @@ public class GameManager : MonoBehaviour
         is_paused = true;
         Show(pause);
         SetCursor(in_menu:true);
+        if (mode == Mode.Educational) EducationalSlidersActive(true);
     }
 
     void Unpause()
     {
         is_paused = false;
         Hide(pause);
+        if (mode == Mode.Educational)
+        {
+            EducationalSlidersActive(false);
+            SetPlayerKVals();
+        }
         SetCursor(in_menu:false);
     }
 
@@ -245,6 +280,7 @@ public class GameManager : MonoBehaviour
         if ( settings_during_pause )
         {
             Show(pause);
+            Show(educational);
             Hide(settings);
             settings_during_pause = false;
         }
@@ -254,11 +290,12 @@ public class GameManager : MonoBehaviour
             Hide(tutorial);
             Hide(pause);
             Hide(settings);
+            Hide(educational);
             Show(title);
             is_paused = false;
+            CleanUpSpawnedGameObjects();
+            menu_camera.gameObject.SetActive(true);
         }
-        CleanUpSpawnedGameObjects();
-        menu_camera.gameObject.SetActive(true);
     }
 
     IEnumerator GameTimer(float time_start)
@@ -315,5 +352,50 @@ public class GameManager : MonoBehaviour
     {
         Cursor.lockState = (Cursor.visible=in_menu) ? CursorLockMode.None : CursorLockMode.Locked;
         Time.timeScale = in_menu ? 0 : 1;
+    }
+
+    void DisplayEduVals()
+    {
+        desired_Ө_display.text = "Desired_Ө: " + players[0].GetComponent<Player>().desired_Ө.ToString("F2");
+        current_Ө_display.text = "Current_Ө: " + players[0].GetComponent<Player>().current_Ө.ToString("F2");
+        desired_Ω_display.text = "Desired_Ω: " + players[0].GetComponent<Player>().desired_Ω.ToString("F2");
+        current_Ω_display.text = "Current_Ω: " + players[0].GetComponent<Player>().current_Ω.ToString("F2");
+        I_display.text = "I: " + players[0].GetComponent<Player>().I.ToString("F2");
+    }
+
+    void InitializeEduSliders()
+    {
+        EducationalSlidersActive(false);
+
+        kp_slider.onValueChanged.AddListener ( delegate { SetEduSliderDisplayVals(); } );
+        ki_slider.onValueChanged.AddListener ( delegate { SetEduSliderDisplayVals(); } );
+        kd_slider.onValueChanged.AddListener ( delegate { SetEduSliderDisplayVals(); } );
+
+        kp_slider.value = players[0].GetComponent<Player>().Kp;
+        ki_slider.value = players[0].GetComponent<Player>().Ki;
+        kd_slider.value = players[0].GetComponent<Player>().Kd;
+
+        SetEduSliderDisplayVals();
+    }
+
+    void EducationalSlidersActive(bool set)
+    {
+        kp_slider.enabled = set;
+        ki_slider.enabled = set;
+        kd_slider.enabled = set;
+    }
+
+    void SetEduSliderDisplayVals()
+    {
+        kp_display.text = kp_slider.value.ToString();
+        ki_display.text = ki_slider.value.ToString();
+        kd_display.text = kd_slider.value.ToString();
+    }
+
+    void SetPlayerKVals()
+    {
+        players[0].GetComponent<Player>().Kp = kp_slider.value;
+        players[0].GetComponent<Player>().Ki = ki_slider.value;
+        players[0].GetComponent<Player>().Kd = kd_slider.value;
     }
 }

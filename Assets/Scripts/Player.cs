@@ -41,13 +41,13 @@ public class Player : MonoBehaviour
     [Tooltip("Rigidbody angular velocity.")]
     [SerializeField] internal float current_Ω;
     [Tooltip("Proportional gain. Increases spring strength.")]
-    [SerializeField] float Kp;
+    [SerializeField] internal float Kp;
     [Tooltip("Integral gain. Increases the rate at which steady state error is counteracted.")]
-    [SerializeField] float Ki;
+    [SerializeField] internal float Ki;
     [Tooltip("Derivative gain. Increases spring damping. Helps with stability.")]
-    [SerializeField] float Kd;
+    [SerializeField] internal float Kd;
     [Tooltip("Running total of steady state error. This value gets scaled by Ki and fixedDeltaTime before being added as torque.")]
-    [SerializeField] float I;
+    [SerializeField] internal float I;
 
     [Header("Stick Physics Variables")]
     [SerializeField] ConfigurableJoint joint;
