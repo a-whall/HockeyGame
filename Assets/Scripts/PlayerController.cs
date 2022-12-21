@@ -6,7 +6,7 @@ public class PlayerController : MonoBehaviour
 {
     [SerializeField] protected Player player;
 
-    [SerializeField] protected int frame_spacebar_last_pressed;
+    [SerializeField] internal int frame_spacebar_last_pressed;
     [SerializeField] protected float dӨ;
 
     [Header("Translation Control")]
@@ -47,8 +47,10 @@ public class PlayerController : MonoBehaviour
         if (GetKey("d")) dx += 1;
         player.move_direction = key_sensitivity * (player.facing_forward ? -1 : 1) * new Vector3(dx, 0, dz).normalized;
 
+        player.stamina = Clamp((Time.frameCount - frame_spacebar_last_pressed) / 100f, 0f, 1f);
+
         if (player.sprint = GetKey("space")
-        && Time.frameCount - frame_spacebar_last_pressed > 100
+        && player.stamina == 1f
         && player.move_direction.magnitude > 0)
             frame_spacebar_last_pressed = Time.frameCount;
 

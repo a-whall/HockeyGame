@@ -53,17 +53,22 @@ public class Puck : MonoBehaviour
             // Get a reference to the player holding this stick.
             Player player = c.transform.parent.GetComponent<Player>();
             // If the player is a goalie, start a coroutine to wait and see if the shot goes in.
-            if (player.GetComponent<GoalieAI>() != null && !waiting_for_goal)
-                StartCoroutine(WaitForGoal(player));
+            if (player.GetComponent<GoalieAI>() != null) {
+                if (!waiting_for_goal) StartCoroutine(WaitForGoal(player));
+            }
             // If the player is human, store a reference to the last person to touch this puck.
             else last_who_touched = player;
         }
-        else if (c.gameObject.CompareTag("Player")) {
+        else if (c.gameObject.CompareTag("Goalie")) {
             Player player = c.gameObject.GetComponent<Player>();
-            if (player.GetComponent<GoalieAI>() != null && !waiting_for_goal)
-                StartCoroutine(WaitForGoal(player));
-            else
-                last_who_touched = player;
+            // could be body object that got hit in which case player component will be parent.
+            if (player == null) player = c.transform.parent.GetComponent<Player>();
+            // could be head object that got hit in which case player component is grandparent in object hierarchy.
+            if (player == null) player = c.transform.parent.parent.GetComponent<Player>();
+            if (player.GetComponent<GoalieAI>() != null) {
+                if (!waiting_for_goal) { StartCoroutine(WaitForGoal(player)); Debug.Log("wait for goal"); }
+            }
+            else last_who_touched = player;
         }
         else if (c.gameObject.CompareTag("Post") && !waiting_for_goal)
             StartCoroutine(WaitForGoal());
@@ -128,7 +133,7 @@ public class Puck : MonoBehaviour
 
         AudioClip sound_effect = game.audio.GetClip(to_play);
 
-        if (sound_effect) audio_source.PlayOneShot(sound_effect);
+        if (sound_effect) audio_source.PlayOneShot(sound_effect, game.volume);
     }
 
     void PlayAppropriateSoundEffectOnExit(float puck_speed, GameObject collided)

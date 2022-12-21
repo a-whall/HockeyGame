@@ -525,7 +525,7 @@ GameObject:
   - component: {fileID: 1916342031719926395}
   m_Layer: 6
   m_Name: Body
-  m_TagString: PlayerBody
+  m_TagString: Goalie
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -776,7 +776,7 @@ GameObject:
   - component: {fileID: 1916342032224852227}
   m_Layer: 6
   m_Name: Head
-  m_TagString: Untagged
+  m_TagString: Goalie
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

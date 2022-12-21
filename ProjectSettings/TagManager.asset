@@ -17,6 +17,8 @@ TagManager:
   - Spawned
   - GoalSensor
   - GameManager
+  - Button
+  - Goalie
   layers:
   - Default
   - TransparentFX
