@@ -476,9 +476,9 @@ public class GameManager : MonoBehaviour
 
     void SetEduSliderDisplayVals()
     {
-        kp_display.text = kp_slider.value.ToString();
-        ki_display.text = ki_slider.value.ToString();
-        kd_display.text = kd_slider.value.ToString();
+        kp_display.text = kp_slider.value.ToString("F0");
+        ki_display.text = ki_slider.value.ToString("F0");
+        kd_display.text = kd_slider.value.ToString("F0");
     }
 
     void SetPlayerKVals()
