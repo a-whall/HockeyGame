@@ -43,19 +43,19 @@ public class GoalieAI : MonoBehaviour
         current_position = self.Body.position;
         current_velocity = self.Body.velocity;
 
-        // Get puck position, ignoring the height.
+        // Get puck xz position.
         Vector3 puck_position = Scale(puck.transform.position, new Vector3(1,0,1));
 
         // -------------------------------------------
         //  Varying behavior for different conditions
         // -------------------------------------------
 
-        // If a goal was scored, do nothing until the puck moves far enough away from the net.
+        // If a goal was scored, do nothing until the puck is removed from the net.
         if (puck.entered_net) {
             self.move_direction = zero;
             return;
         }
-        // If the puck is behind the net: hug the corner.
+        // If the puck is behind the net, hug the corner.
         else if (Abs(puck_position.z) > Abs(net.transform.position.z)) {
             // Vector in direction from point of rotation to corner
             float angle = 56.84f * Deg2Rad;
@@ -63,18 +63,16 @@ public class GoalieAI : MonoBehaviour
             float z_offset = (puck_position.z < 0) ? Cos(angle) : -Cos(angle);
             desired_position = point_of_rotation + new Vector3(x_offset, 0, z_offset) * net_distance;
         }
-        // Otherwise do default goalie behavior.
+        // Otherwise do default goalie behavior depending on GameManager difficulty.
         else {
-            // This behavior depends on GameManager difficulty
-            if (self.game.game_difficulty == "Easy" || puck.puckbody.velocity.magnitude < 15f) {
+            if (self.game.difficulty == "Easy" || puck.puckbody.velocity.magnitude < 15f) {
                 // Set desired position based on the position of the puck and the point of rotation.
                 desired_position = point_of_rotation + net_distance * (puck_position - point_of_rotation).normalized;
             }
-            else if (self.game.game_difficulty == "Normal" || self.game.game_difficulty == "Hard") {
-                // Set desired position based on the xz position where the puck is going to enter the net.
+            else if (self.game.difficulty == "Normal" || self.game.difficulty == "Hard") {
+                // Set desired position based on the xz position where the puck is going to enter the net based on its velocity.
                 if (Physics.Raycast(puck.puckbody.position, puck.puckbody.velocity.normalized, out RaycastHit hit, LayerMask.GetMask("GoalSensor"))) {
                     desired_position = point_of_rotation + net_distance * (Scale(hit.point, new Vector3(1, 0, 1)) - point_of_rotation).normalized;
-                    desired_position.Scale(new Vector3(1, 0, 1));
                 }
             }
         }

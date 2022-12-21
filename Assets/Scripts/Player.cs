@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.UI;
 using static UnityEngine.Mathf;
 
 
@@ -16,6 +17,8 @@ public class Player : MonoBehaviour
     [Serializable] private class Rigidbodies { public Rigidbody body, stick; }
 
     [SerializeField] internal GameManager game;
+    [SerializeField] internal Scrollbar stamina_ui;
+    [SerializeField] internal float stamina;
 
     public bool is_idle = true;
     public bool stick_raised = false;
@@ -91,6 +94,8 @@ public class Player : MonoBehaviour
         Body.drag = braking ? braking_drag : regular_drag;
         
         Body.velocity = Vector3.ClampMagnitude(Body.velocity, max_speed);
+
+        if (stamina_ui) stamina_ui.size = stamina;
     }
 
     // All physics computations done here.

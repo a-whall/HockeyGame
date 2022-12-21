@@ -7,9 +7,6 @@ using UnityEngine;
     {
         Pass_1,
         Pass_2,
-        Pass_3,
-        Pass_4,
-        Pass_5,
         Period_Buzzer,
         Player_Hit_Board,
         Puck_Board_1,
@@ -27,23 +24,14 @@ using UnityEngine;
         Shot_2,
         Shot_3,
         Stick_Ice,
-        Stick_Ice_1,
-        Stick_Ice_2,
-        Stick_Ice_3,
         Slide_Stop,
-        Stick_Stick,
-        Puck_Hit_Board_Fast,
-        Puck_Hit_Stick,
-        Stick_Hit_Board,
+        click,
+        success,
         None
     }
 
     [Header("Sound Effects Library")]
     [SerializeField] AudioClip[] audio_clips;
-
-    [Header("Volume")]
-    public float sfx_volume;
-    public float ambient_volume;
 
     public AudioClip GetClip(AudioID type) =>
         type == AudioID.None ? null :  audio_clips[(int)type];

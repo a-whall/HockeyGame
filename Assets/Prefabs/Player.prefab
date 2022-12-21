@@ -141,7 +141,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   audio_source: {fileID: 3897092622231799257}
-  game: {fileID: 0}
   player: {fileID: 3897092623687163830}
   use_audio: 0
 --- !u!54 &3897092622231799237
@@ -506,7 +505,7 @@ GameObject:
   - component: {fileID: 3897092622898310943}
   m_Layer: 6
   m_Name: Head
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -934,7 +933,7 @@ GameObject:
   - component: {fileID: 3897092623830856110}
   m_Layer: 6
   m_Name: Body
-  m_TagString: PlayerBody
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

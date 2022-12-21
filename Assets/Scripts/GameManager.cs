@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using static AudioManager.AudioID;
@@ -25,7 +24,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] internal bool ignore_pause;
     [SerializeField] internal Puck puck;
     [SerializeField] internal bool settings_during_pause;
-    [SerializeField] internal string game_difficulty = "";
+    [SerializeField] internal string difficulty = "";
     [SerializeField] internal float volume;
     [SerializeField] internal Mode mode;
     [SerializeField] List<Player> players;
@@ -41,6 +40,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] CanvasGroup overlay;
     [SerializeField] Text score_label;
     [SerializeField] Text time_label;
+    [SerializeField] Scrollbar player_stamina_bar;
 
     [Header("Title Menu")]
     [SerializeField] CanvasGroup title;
@@ -48,11 +48,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] Dropdown start_mode;
     [SerializeField] Button title_to_settings;
     [SerializeField] Button start_tutorial;
-    [SerializeField] Button start_lesson;
+    [SerializeField] Button exit;
 
     [Header("Settings menu")]
     [SerializeField] CanvasGroup settings;
-    [SerializeField] ToggleGroup difficulty;
+    [SerializeField] ToggleGroup difficulty_toggle;
     [SerializeField] Toggle easy;
     [SerializeField] Toggle normal;
     [SerializeField] Toggle hard;
@@ -101,7 +101,8 @@ public class GameManager : MonoBehaviour
 
     [Header("Post-Game menu")]
     [SerializeField] CanvasGroup post_game;
-    [SerializeField] Text stats;
+    [SerializeField] Text stats0;
+    [SerializeField] Text stats1;
     [SerializeField] Button post_game_to_menu;
 
     [Header("Scored")]
@@ -114,8 +115,8 @@ public class GameManager : MonoBehaviour
     {
         "Controls:\n\nW - forward\nS - backward\nA - left\nD - right",
         "Move your mouse left/right to rotate your player.\n\nLeft-Click to raise your stick.\n\nPress escape at any point to pause the game.",
-        "More instructions.",
-        "More instructions."
+        "Press space to get a boost in speed.\n\nLeft-Shift to come to a quick stop.\n\nRight-Click to lift the puck on shot.",
+        "Be creative and try to score!\n\n(Hint: Try spacebar boost while mid-shot for extra puck acceleration!)"
     };
 
     void Start()
@@ -135,6 +136,7 @@ public class GameManager : MonoBehaviour
         start_game.onClick.AddListener( StartNewGame );
         title_to_settings.onClick.AddListener( OpenSettings );
         start_tutorial.onClick.AddListener( StartTutorial );
+        exit.onClick.AddListener( Application.Quit );
 
         // Pause menu buttons.
         resume.onClick.AddListener( Unpause );
@@ -157,13 +159,19 @@ public class GameManager : MonoBehaviour
         settings_to_menu.onClick.AddListener( BackToMenu );
         pause_to_settings.onClick.AddListener( OpenSettings );
 
-
         // Educational buttons
         kp_info.onClick.AddListener( DisplayKpInfo );
         ki_info.onClick.AddListener( DisplayKiInfo );
         kd_info.onClick.AddListener( DisplayKdInfo );
         done_with_info.onClick.AddListener( HideEduInfo );
 
+        // set up button click UI sound effect.
+        foreach (GameObject g in GameObject.FindGameObjectsWithTag("Button"))
+            g.GetComponent<Button>().onClick.AddListener(() => audio_source.PlayOneShot(audio.GetClip(click), volume));
+
+        post_game_to_menu.onClick.AddListener( BackToMenu );
+
+        difficulty = difficulty_toggle.GetFirstActiveToggle().name;
 
         // Start on the title menu canvas group.
         SetCursor(in_menu:true);
@@ -215,20 +223,20 @@ public class GameManager : MonoBehaviour
         if (GetKeyDown("f11")) {
             
         }
-        if (game_over || is_paused)
+        if (game_over)
             return;
-        if (GetKeyDown("escape"))
-            Pause();
+        if (GetKeyDown("escape")) {
+            if (ignore_pause)
+                return;
+            if (!is_paused)
+                Pause();
+            else if (is_paused)
+                Unpause();
+        }
 
         volume = slider.value;
 
         if ( mode == Mode.Educational && players[0] != null ) DisplayEduVals();
-    }
-
-    void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("Puck"))
-            StartCoroutine(PuckOutOfBounds());
     }
 
     void StartNewGame()
@@ -242,8 +250,12 @@ public class GameManager : MonoBehaviour
         players.Clear();
         pucks.Clear();
 
+        // Reset game session variables before starting game timer.
+        game_over = false;
+
         // Always create a single player.
         players.Add(Instantiate(player_prefab, new Vector3(0, 0, -4), Quaternion.identity).GetComponent<Player>());
+        players[0].stamina_ui = player_stamina_bar;
 
         if (mode == Mode.Practice) {
             // Create a single puck (for now).
@@ -275,9 +287,6 @@ public class GameManager : MonoBehaviour
 
         // Switch camera to player camera.
         menu_camera.gameObject.SetActive(false);
-
-        // TODO: Reset game session variables.
-        game_over = false;
     }
 
     void OpenSettings()
@@ -350,6 +359,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
+            Hide(post_game);
             Hide(overlay);
             Hide(tutorial);
             Hide(pause);
@@ -366,18 +376,24 @@ public class GameManager : MonoBehaviour
     IEnumerator GameTimer(float time_start)
     {
         while (Time.time - time_start < game_duration) {
+            // if game ends early by clicking back to menu, stop timer
+            if (game_over) yield break;
             time_remaining = game_duration - (Time.time - time_start);
             time_label.text = $"{(int)(time_remaining / 60f)}:{time_remaining % 60f:00.0}";
             yield return new WaitForEndOfFrame();
         }
+        if (mode == Mode.Practice || mode == Mode.Shootout) {
+            UpdateStats();
+        }
         game_over = true;
         Hide(overlay);
         Show(post_game);
+        SetCursor(in_menu: true);
         audio_source.PlayOneShot(audio.GetClip(Period_Buzzer));
         yield break;
     }
 
-    IEnumerator PuckOutOfBounds()
+    internal IEnumerator PuckOutOfBounds(Puck puck)
     {
         yield return new WaitForSeconds(2);
         puck.DropFrom(4 * Vector3.up);
@@ -387,7 +403,7 @@ public class GameManager : MonoBehaviour
     {
         ignore_pause = true;
         Show(scored);
-        scored_label.text = $"Nice Shot!\n{puck_that_scored.velocity_on_goal.magnitude * 2.2372f:0.0} mph";
+        scored_label.text = $"Nice Shot!\n{puck_that_scored.velocity_on_goal.magnitude * 2.237f:0.0} mph";
         yield return new WaitForSeconds(2);
         puck_that_scored.DropFrom(4 * Vector3.up);
         puck_that_scored.entered_net = false;
@@ -402,9 +418,15 @@ public class GameManager : MonoBehaviour
         score_label.text = $"{score[0]}   -   {score[1]}";
     }
 
+    void UpdateStats()
+    {
+        stats0.text = $"You     {players[0].goals:#0}       {players[0].shots:#0}      {players[0].saves:#0}";
+        stats1.text = $"Goalie  {players[1].goals:#0}       {players[1].shots:#0}      {players[1].saves:#0}";
+    }
+
     public void UpdateDifficulty(bool b)
     {
-        game_difficulty = difficulty.GetFirstActiveToggle().name;
+        difficulty = difficulty_toggle.GetFirstActiveToggle().name;
     }
 
     void CleanUpSpawnedGameObjects()
