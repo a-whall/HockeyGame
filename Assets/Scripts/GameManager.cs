@@ -88,6 +88,16 @@ public class GameManager : MonoBehaviour
     [SerializeField] Text desired_Ω_display;
     [SerializeField] Text current_Ω_display;
     [SerializeField] Text I_display;
+    [SerializeField] Button kp_info;
+    [SerializeField] Button ki_info;
+    [SerializeField] Button kd_info;
+    [SerializeField] CanvasGroup display_info;
+    [SerializeField] Button done_with_info;
+    [SerializeField] Text info;
+    [SerializeField] Text info_title;
+    [SerializeField] Text kp_placeholder;
+    [SerializeField] Text ki_placeholder;
+    [SerializeField] Text kd_placeholder;
 
     [Header("Post-Game menu")]
     [SerializeField] CanvasGroup post_game;
@@ -148,9 +158,56 @@ public class GameManager : MonoBehaviour
         pause_to_settings.onClick.AddListener( OpenSettings );
 
 
+        // Educational buttons
+        kp_info.onClick.AddListener( DisplayKpInfo );
+        ki_info.onClick.AddListener( DisplayKiInfo );
+        kd_info.onClick.AddListener( DisplayKdInfo );
+        done_with_info.onClick.AddListener( HideEduInfo );
+
+
         // Start on the title menu canvas group.
         SetCursor(in_menu:true);
         Show(title);
+    }
+
+    void DisplayKpInfo()
+    {
+        info_title.text = "About Kp";
+        info.text = "Kp information goes here.";
+        Hide(pause);
+        Hide(overlay);
+        Show(display_info);
+        kp_placeholder.enabled = false;
+        kp_slider.gameObject.SetActive(true);
+    }
+
+    void DisplayKiInfo()
+    {
+        info_title.text = "About Ki";
+        info.text = "Ki information goes here.";
+        Hide(pause);
+        Hide(overlay);
+        Show(display_info);
+        ki_placeholder.enabled = false;
+        ki_slider.gameObject.SetActive(true);
+    }
+
+    void DisplayKdInfo()
+    {
+        info_title.text = "About Kd";
+        info.text = "Kd information goes here.";
+        Hide(pause);
+        Hide(overlay);
+        Show(display_info);
+        kd_placeholder.enabled = false;
+        kd_slider.gameObject.SetActive(true);
+    }
+
+    void HideEduInfo()
+    {
+        Hide(display_info);
+        Show(pause);
+        Show(overlay);
     }
 
     void Update()
@@ -385,7 +442,13 @@ public class GameManager : MonoBehaviour
 
     void InitializeEduSliders()
     {
-        EducationalSlidersActive(false);
+        kp_slider.gameObject.SetActive(false);
+        ki_slider.gameObject.SetActive(false);
+        kd_slider.gameObject.SetActive(false);
+
+        kp_placeholder.enabled = true;
+        ki_placeholder.enabled = true;
+        kd_placeholder.enabled = true;
 
         kp_slider.onValueChanged.AddListener ( delegate { SetEduSliderDisplayVals(); } );
         ki_slider.onValueChanged.AddListener ( delegate { SetEduSliderDisplayVals(); } );
