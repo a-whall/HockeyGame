@@ -181,7 +181,7 @@ public class GameManager : MonoBehaviour
     void DisplayKpInfo()
     {
         info_title.text = "About Kp";
-        info.text = "The proportional term. Up = Kp (Θ - Θd). The purpose of this term is to act as a 'spring' that guides Θ towards Θd. (Θ - Θd) is the error of the current state, and the gain term Kp > 0 dictates the strength of the spring. Larger valves of Kp produce stiffer spring action. If a spring is too stiff it will overshoot the desired Θ and might even go unstable and get stuck in oscillation around the desired Θ. If control consists of purely a proportional term the system runs a risk of arriving at a nonzero steady state error.";
+        info.text = "The proportional term. Up = Kp (Θ - Θd). The purpose of this term is to act as a 'spring' that guides Θ towards Θd.\n\n(Θ - Θd) is the error of the current state, and the gain term Kp > 0 dictates the strength of the spring. Larger valves of Kp produce stiffer spring action.\n\nIf a spring is too stiff it will overshoot the desired Θ and might even go unstable and get stuck in oscillation around the desired Θ.\n\nIf control consists of purely a proportional term the system runs a risk of arriving at a nonzero steady state error.";
         Hide(pause);
         Hide(overlay);
         Show(display_info);
@@ -192,7 +192,7 @@ public class GameManager : MonoBehaviour
     void DisplayKiInfo()
     {
         info_title.text = "About Ki";
-        info.text = "The integral term is designed to counteract steady state errors. When steady state error is positive, this term grows negatively to the point where it should be pushed to zero. The integral term is approximated at each time step as a running total.\nUi (t) = Ui(t − Δt) + Δt (Θ(t) - Θd(t))";
+        info.text = "The integral term is designed to counteract steady state errors.\n\nWhen steady state error is positive, this term grows negatively to the point where it should be pushed to zero.\n\nThe integral term is approximated at each time step as a running total.\n\nUi (t) = Ui(t − Δt) + Δt (Θ(t) - Θd(t))";
         Hide(pause);
         Hide(overlay);
         Show(display_info);
@@ -203,7 +203,7 @@ public class GameManager : MonoBehaviour
     void DisplayKdInfo()
     {
         info_title.text = "About Kd";
-        info.text = "The final derivative term is designed to add a form of damping which helps stabilize systems. Moreover we can specify a desired velocity 𝛩d so that the derivative term can help the system track desired changes faster than the proportional term alone.\nUd = - Kd (𝛩 - 𝛩d)";
+        info.text = "The final derivative term is designed to add a form of damping which helps stabilize systems.\n\nMoreover we can specify a desired velocity 𝛩d so that the derivative term can help the system track desired changes faster than the proportional term alone.\n\nUd = - Kd (𝛩 - 𝛩d)";
         Hide(pause);
         Hide(overlay);
         Show(display_info);
