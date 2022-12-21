@@ -25,7 +25,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] internal bool ignore_pause;
     [SerializeField] internal Puck puck;
     [SerializeField] internal bool settings_during_pause;
-    [SerializeField] internal string game_difficulty = "";
+    [SerializeField] internal string difficulty = "";
     [SerializeField] internal float volume;
     [SerializeField] internal Mode mode;
     [SerializeField] List<Player> players;
@@ -52,7 +52,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Settings menu")]
     [SerializeField] CanvasGroup settings;
-    [SerializeField] ToggleGroup difficulty;
+    [SerializeField] ToggleGroup difficulty_toggle;
     [SerializeField] Toggle easy;
     [SerializeField] Toggle normal;
     [SerializeField] Toggle hard;
@@ -157,13 +157,13 @@ public class GameManager : MonoBehaviour
         settings_to_menu.onClick.AddListener( BackToMenu );
         pause_to_settings.onClick.AddListener( OpenSettings );
 
-
         // Educational buttons
         kp_info.onClick.AddListener( DisplayKpInfo );
         ki_info.onClick.AddListener( DisplayKiInfo );
         kd_info.onClick.AddListener( DisplayKdInfo );
         done_with_info.onClick.AddListener( HideEduInfo );
 
+        difficulty = difficulty_toggle.GetFirstActiveToggle().name;
 
         // Start on the title menu canvas group.
         SetCursor(in_menu:true);
@@ -217,18 +217,15 @@ public class GameManager : MonoBehaviour
         }
         if (game_over || is_paused)
             return;
-        if (GetKeyDown("escape"))
-            Pause();
+        if (GetKeyDown("escape")) {
+            if (ignore_pause) return;
+            if (!is_paused) Pause();
+            if (is_paused) Unpause();
+        }
 
         volume = slider.value;
 
         if ( mode == Mode.Educational && players[0] != null ) DisplayEduVals();
-    }
-
-    void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("Puck"))
-            StartCoroutine(PuckOutOfBounds());
     }
 
     void StartNewGame()
@@ -377,7 +374,7 @@ public class GameManager : MonoBehaviour
         yield break;
     }
 
-    IEnumerator PuckOutOfBounds()
+    internal IEnumerator PuckOutOfBounds(Puck puck)
     {
         yield return new WaitForSeconds(2);
         puck.DropFrom(4 * Vector3.up);
@@ -387,7 +384,7 @@ public class GameManager : MonoBehaviour
     {
         ignore_pause = true;
         Show(scored);
-        scored_label.text = $"Nice Shot!\n{puck_that_scored.velocity_on_goal.magnitude * 2.2372f:0.0} mph";
+        scored_label.text = $"Nice Shot!\n{puck_that_scored.velocity_on_goal.magnitude * 2.237f:0.0} mph";
         yield return new WaitForSeconds(2);
         puck_that_scored.DropFrom(4 * Vector3.up);
         puck_that_scored.entered_net = false;
@@ -404,7 +401,7 @@ public class GameManager : MonoBehaviour
 
     public void UpdateDifficulty(bool b)
     {
-        game_difficulty = difficulty.GetFirstActiveToggle().name;
+        difficulty = difficulty_toggle.GetFirstActiveToggle().name;
     }
 
     void CleanUpSpawnedGameObjects()

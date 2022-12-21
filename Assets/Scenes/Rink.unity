@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028334, g: 0.22571328, b: 0.3069217, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -3780,7 +3780,7 @@ GameObject:
   - component: {fileID: 593331969}
   m_Layer: 0
   m_Name: GameManager
-  m_TagString: Untagged
+  m_TagString: GameManager
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3811,7 +3811,7 @@ MonoBehaviour:
   ignore_pause: 0
   puck: {fileID: 0}
   settings_during_pause: 0
-  game_difficulty: 
+  difficulty: 
   volume: 0
   mode: 0
   players:
@@ -3831,7 +3831,7 @@ MonoBehaviour:
   start_tutorial: {fileID: 14225057}
   start_lesson: {fileID: 1232800053}
   settings: {fileID: 1057893133}
-  difficulty: {fileID: 48198133}
+  difficulty_toggle: {fileID: 48198133}
   easy: {fileID: 272393341}
   normal: {fileID: 929371391}
   hard: {fileID: 647929267}
@@ -4634,7 +4634,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.0771453, y: 0.90329707}
   m_AnchorMax: {x: 0.10156411, y: 0.927703}
-  m_AnchoredPosition: {x: -49, y: 17.000916}
+  m_AnchoredPosition: {x: -49, y: 17.000763}
   m_SizeDelta: {x: 259, y: 34}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &695632434

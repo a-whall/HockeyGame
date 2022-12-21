@@ -49,13 +49,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2397361d1bbc4d54eb35574fd33e96f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  max_speed: 20
+  max_speed: 30
   lift_sensitivity: 1000
   puckbody: {fileID: 1974941066992072026}
   audio_source: {fileID: 2906644517037111889}
   game: {fileID: 0}
   stick_enter_cooldown: 0
   stick_exit_cooldown: 0
+  entered_net: 0
+  last_who_touched: {fileID: 0}
+  velocity_on_goal: {x: 0, y: 0, z: 0}
+  waiting_for_goal: 0
 --- !u!54 &1974941066992072026
 Rigidbody:
   m_ObjectHideFlags: 0
