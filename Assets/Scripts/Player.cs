@@ -119,6 +119,17 @@ public class Player : MonoBehaviour
         joint.targetPosition = stick_raised ? new Vector3(Stick.position.x, raised_stick_height, Stick.position.z) : Vector3.zero;
     }
 
+    internal void SetLocation(Vector2 location) {
+        Body.position = new Vector3(location.x, Body.position.y, location.y);
+        Body.velocity = Vector3.zero;
+        Body.angularVelocity = Vector3.zero;
+        Body.rotation = Quaternion.identity;
+        current_Ө = 0;
+        desired_Ө = 0;
+        current_Ω = 0;
+        desired_Ω = 0;
+    }
+
     // Returns parameter value but switches referenced bool off if it's on.
     // (b:T) => T; b = F; otherwise (b:F) => F;
     bool Use(ref bool b) => b && !(b = false);

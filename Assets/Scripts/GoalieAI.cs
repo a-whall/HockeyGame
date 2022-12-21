@@ -65,17 +65,19 @@ public class GoalieAI : MonoBehaviour
         }
         // Otherwise do default goalie behavior depending on GameManager difficulty.
         else {
-            if (self.game.difficulty == "Easy" || puck.puckbody.velocity.magnitude < 15f) {
-                // Set desired position based on the position of the puck and the point of rotation.
+            // If the game is on easy mode, or puck is at low velocity, set desired position based on the position of the puck and the point of rotation.
+            if (self.game.difficulty == "Easy" || puck.puckbody.velocity.magnitude < 15f)
                 desired_position = point_of_rotation + net_distance * (puck_position - point_of_rotation).normalized;
-            }
+            // If the game is on normal or hard mode, look at the velocity of the puck and try to intercept it.
             else if (self.game.difficulty == "Normal" || self.game.difficulty == "Hard") {
-                // Set desired position based on the xz position where the puck is going to enter the net based on its velocity.
-                if (Physics.Raycast(puck.puckbody.position, puck.puckbody.velocity.normalized, out RaycastHit hit, LayerMask.GetMask("GoalSensor"))) {
+                // Only try to block the puck based on it's velocity if it is on course to enter the net.
+                if (Physics.Raycast(puck.puckbody.position, puck.puckbody.velocity.normalized, out RaycastHit hit, LayerMask.GetMask("GoalSensor")))
                     desired_position = point_of_rotation + net_distance * (Scale(hit.point, new Vector3(1, 0, 1)) - point_of_rotation).normalized;
-                }
+                // Otherwise fall back to the prior low velocity method.
+                else desired_position = point_of_rotation + net_distance * (puck_position - point_of_rotation).normalized;
             }
         }
+        // TODO: sense when self has possession via trigger collider on the goalie. (collider configuration not set up for that yet)
 
         // ---------------------------------------------------------------------
         //  Constant update of physics variables to control player (PD-control)
@@ -103,10 +105,6 @@ public class GoalieAI : MonoBehaviour
         }
 
         self.move_direction -= damping * (current_velocity - desired_velocity);
-
-        // sense when self has possession.
-
-        // if pucks velocity is high, do a deflection shooting method correction of desired position.
     }
 
 

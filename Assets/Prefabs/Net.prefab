@@ -55,9 +55,9 @@ GameObject:
   m_Component:
   - component: {fileID: 9136669956022003169}
   - component: {fileID: 9136669956022003175}
-  - component: {fileID: 8737336872227930630}
-  - component: {fileID: 9136669956022003174}
   - component: {fileID: 8362821331688562737}
+  - component: {fileID: 9136669956022003174}
+  - component: {fileID: 257160211690033905}
   m_Layer: 0
   m_Name: NetMesh
   m_TagString: Net
@@ -87,73 +87,6 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8466811581309435739}
-  m_Mesh: {fileID: -2432090755550338912, guid: bec06bcf95db98748a2a615216612ee1, type: 3}
---- !u!137 &8737336872227930630
-SkinnedMeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8466811581309435739}
-  m_Enabled: 0
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 3
-  m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 9e663453e57ba8b4f815164c9881a500, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  serializedVersion: 2
-  m_Quality: 0
-  m_UpdateWhenOffscreen: 0
-  m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: -2432090755550338912, guid: bec06bcf95db98748a2a615216612ee1, type: 3}
-  m_Bones: []
-  m_BlendShapeWeights: []
-  m_RootBone: {fileID: 0}
-  m_AABB:
-    m_Center: {x: 0.0000011920929, y: 0.748529, z: -0.32702398}
-    m_Extent: {x: 1.1420313, y: 0.75006825, z: 0.32705474}
-  m_DirtyAABB: 0
---- !u!64 &9136669956022003174
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8466811581309435739}
-  m_Material: {fileID: 13400000, guid: 5ff0d7e1a3adb9e489ba0eb632b00fe8, type: 2}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 4
-  m_Convex: 0
-  m_CookingOptions: 30
   m_Mesh: {fileID: -2432090755550338912, guid: bec06bcf95db98748a2a615216612ee1, type: 3}
 --- !u!23 &8362821331688562737
 MeshRenderer:
@@ -197,6 +130,47 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &9136669956022003174
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8466811581309435739}
+  m_Material: {fileID: 13400000, guid: 5ff0d7e1a3adb9e489ba0eb632b00fe8, type: 2}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -2432090755550338912, guid: bec06bcf95db98748a2a615216612ee1, type: 3}
+--- !u!205 &257160211690033905
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8466811581309435739}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0, y: 0.7499999, z: -0.327}
+  m_Size: 2.284
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.14416775
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 8362821331688562737}
+  - screenRelativeHeight: 0.14416775
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 8362821331688562737}
+  - screenRelativeHeight: 0.14416775
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 8362821331688562737}
+  m_Enabled: 1
 --- !u!1 &8737336871189817385
 GameObject:
   m_ObjectHideFlags: 0

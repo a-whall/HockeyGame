@@ -12,7 +12,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] Camera menu_camera;
 
     [Header("Game Session Constants")]
-    [SerializeField] float game_duration;
+    [SerializeField] float practice_duration;
+    [SerializeField] float shootout_round_duration;
+    [SerializeField] int num_shootout_rounds;
+    [SerializeField] int current_shootout_round;
     [SerializeField] int target_frame_rate;
     [SerializeField] GameObject player_prefab, goalie_prefab, shooter_prefab, puck_prefab;
 
@@ -266,10 +269,20 @@ public class GameManager : MonoBehaviour
             players[1].GetComponent<GoalieAI>().net = nets[0];
             players[1].GetComponent<GoalieAI>().puck = pucks[0];
             
-            StartCoroutine(GameTimer(time_start: Time.time));
+            StartCoroutine(PracticeTimer(time_start: Time.time));
         }
         if (mode == Mode.Shootout) {
+            // Create a single puck (for now).
+            pucks.Add(Instantiate(puck_prefab, new Vector3(0, 4, 0), Quaternion.identity).GetComponent<Puck>());
 
+            // Create goalie to defend net 0.
+            players.Add(Instantiate(goalie_prefab, new Vector3(0, 0, 24), Quaternion.identity).GetComponent<Player>());
+            players[1].GetComponent<GoalieAI>().net = nets[0];
+            players[1].GetComponent<GoalieAI>().puck = pucks[0];
+
+            current_shootout_round = 1;
+
+            StartCoroutine(ShootoutTimer(time_start: Time.time));
         }
         if (mode == Mode.Educational) {
             pucks.Add(Instantiate(puck_prefab, new Vector3(0, 4, 0), Quaternion.identity).GetComponent<Puck>());
@@ -373,24 +386,38 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    IEnumerator GameTimer(float time_start)
+    IEnumerator PracticeTimer(float time_start)
     {
-        while (Time.time - time_start < game_duration) {
+        while (Time.time - time_start < practice_duration) {
             // if game ends early by clicking back to menu, stop timer
             if (game_over) yield break;
-            time_remaining = game_duration - (Time.time - time_start);
+            time_remaining = practice_duration - (Time.time - time_start);
             time_label.text = $"{(int)(time_remaining / 60f)}:{time_remaining % 60f:00.0}";
             yield return new WaitForEndOfFrame();
         }
-        if (mode == Mode.Practice || mode == Mode.Shootout) {
-            UpdateStats();
-        }
-        game_over = true;
-        Hide(overlay);
-        Show(post_game);
-        SetCursor(in_menu: true);
-        audio_source.PlayOneShot(audio.GetClip(Period_Buzzer));
+        EndGame();
         yield break;
+    }
+
+    IEnumerator ShootoutTimer(float time_start)
+    {
+        while (Time.time - time_start < shootout_round_duration) {
+            if (game_over) yield break;
+            time_remaining = shootout_round_duration - (Time.time - time_start);
+            time_label.text = $"{(int)(time_remaining / 60f)}:{time_remaining % 60f:00.0}";
+            yield return new WaitForEndOfFrame();
+        }
+        ResetShootout();
+        yield break;
+    }
+
+    void ResetShootout() {
+        if (current_shootout_round++ < num_shootout_rounds) {
+            pucks[0].DropFrom(4 * Vector3.up);
+            players[0].SetLocation(new(0, -4));
+            StartCoroutine(ShootoutTimer(time_start: Time.time));
+        }
+        else EndGame();
     }
 
     internal IEnumerator PuckOutOfBounds(Puck puck)
@@ -427,6 +454,16 @@ public class GameManager : MonoBehaviour
     public void UpdateDifficulty(bool b)
     {
         difficulty = difficulty_toggle.GetFirstActiveToggle().name;
+    }
+
+    void EndGame()
+    {
+        game_over = true;
+        Hide(overlay);
+        UpdateStats();
+        Show(post_game);
+        SetCursor(in_menu: true);
+        audio_source.PlayOneShot(audio.GetClip(Period_Buzzer));
     }
 
     void CleanUpSpawnedGameObjects()
