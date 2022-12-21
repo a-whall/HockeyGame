@@ -7,7 +7,7 @@ public class Puck : MonoBehaviour
 {
     [SerializeField] float max_speed;
     [SerializeField] float lift_sensitivity;
-    [SerializeField] Rigidbody puckbody;
+    [SerializeField] internal Rigidbody puckbody;
     [SerializeField] AudioSource audio_source;
     [SerializeField] internal GameManager game;
     [SerializeField] bool stick_enter_cooldown;

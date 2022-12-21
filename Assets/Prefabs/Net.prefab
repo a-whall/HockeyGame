@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1288200492893765104}
   - component: {fileID: 6941165483861504184}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: GoalSensorCollider
   m_TagString: GoalSensor
   m_Icon: {fileID: 0}
