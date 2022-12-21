@@ -1,4 +1,5 @@
 using System.Collections;
+using UnityEditor.UI;
 using UnityEngine;
 using static AudioManager.AudioID;
 
@@ -14,6 +15,7 @@ public class Puck : MonoBehaviour
     [SerializeField] internal bool entered_net;
     [SerializeField] internal Player last_who_touched;
     [SerializeField] internal Vector3 velocity_on_goal;
+    [SerializeField] internal bool waiting_for_goal;
 
     void Start()
     {
@@ -25,7 +27,7 @@ public class Puck : MonoBehaviour
     void Update()
     {
         if (puckbody.velocity.magnitude > max_speed)
-            puckbody.AddForce((max_speed - puckbody.velocity.magnitude) * puckbody.mass * puckbody.velocity.normalized);
+            Vector3.ClampMagnitude(puckbody.velocity, max_speed);
     }
 
     void OnTriggerEnter(Collider other) {
@@ -40,8 +42,32 @@ public class Puck : MonoBehaviour
 
     void OnCollisionEnter(Collision c)
     {
+
         if (c.gameObject.CompareTag("Stick")) {
-            last_who_touched = c.gameObject.GetComponent<Stick>().player;
+            // Get a reference to the player holding this stick.
+            Player player = c.transform.parent.GetComponent<Player>();
+
+            // If the player is a goalie.
+            if (player.GetComponent<GoalieAI>() != null) {
+                if (!waiting_for_goal)
+                    StartCoroutine(WaitForGoal(player));
+            }
+            else {
+                last_who_touched = player;
+            }
+        }
+        if (c.gameObject.CompareTag("Player")) {
+            Player player = c.gameObject.GetComponent<Player>();
+            if (player.GetComponent<GoalieAI>() != null) {
+                if (!waiting_for_goal)
+                    StartCoroutine(WaitForGoal(player));
+            }
+            else {
+                last_who_touched = player;
+            }
+        }
+        if (c.gameObject.CompareTag("Post")) {
+            StartCoroutine(WaitForGoal());
         }
         PlayAppropriateSoundEffectOnEnter(c.relativeVelocity.magnitude, c.gameObject);
         
@@ -65,6 +91,19 @@ public class Puck : MonoBehaviour
             //     apply an extra force in the direction of the stick
         }
         PlayAppropriateSoundEffectOnExit(c.relativeVelocity.magnitude, c.gameObject);
+    }
+
+    IEnumerator WaitForGoal(Player who_saved = null)
+    {
+        // If the puck hits the goalie, it might still go in.
+        // wait half a second then if a goal has not been scored, adjust save and shot stats accordingly.
+        waiting_for_goal = true;
+        yield return new WaitForSeconds(0.5f);
+        if (!entered_net) {
+            if (who_saved) who_saved.saves += 1;
+            last_who_touched.shots += 1;
+        }
+        waiting_for_goal = false;
     }
 
     void PlayAppropriateSoundEffectOnEnter(float puck_speed, GameObject collided)

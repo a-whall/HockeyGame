@@ -391,6 +391,8 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(2);
         puck_that_scored.DropFrom(4 * Vector3.up);
         puck_that_scored.entered_net = false;
+        puck_that_scored.last_who_touched.goals += 1;
+        puck_that_scored.last_who_touched.shots += 1;
         Hide(scored);
         ignore_pause = false;
     }

@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using UnityEngine.Rendering;
+using System.Collections;
 using static UnityEngine.Mathf;
 using static UnityEngine.Vector3;
 
@@ -104,6 +104,12 @@ public class GoalieAI : MonoBehaviour
         // sense when self has possession.
 
         // if pucks velocity is high, do a deflection shooting method correction of desired position.
+    }
+
+
+    IEnumerator StartSwing(float delay) {
+        yield return new WaitForSeconds(delay);
+
     }
 
     void OnTriggerEnter(Collider c)
